@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { CartItem } from "@/lib/types";
 import { useCart } from "./CartContext";
 
-export default function AddToCart({ slug }: { slug: string }) {
+export default function AddToCart({
+  product,
+}: {
+  product: Omit<CartItem, "qty">;
+}) {
   const { add } = useCart();
   const router = useRouter();
   const [qty, setQty] = useState(1);
@@ -35,7 +40,7 @@ export default function AddToCart({ slug }: { slug: string }) {
       <button
         type="button"
         onClick={() => {
-          add(slug, qty);
+          add(product, qty);
           setAdded(true);
           setTimeout(() => setAdded(false), 1800);
         }}
@@ -47,7 +52,7 @@ export default function AddToCart({ slug }: { slug: string }) {
       <button
         type="button"
         onClick={() => {
-          add(slug, qty);
+          add(product, qty);
           router.push("/carrinho");
         }}
         className="rounded-full border border-gold px-8 py-3 text-sm font-semibold text-gold transition hover:bg-gold hover:text-white"

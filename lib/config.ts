@@ -6,7 +6,8 @@ export const store = {
   tagline: "Perfumaria",
   slogan: "Sua assinatura olfativa começa aqui",
   description:
-    "Perfumes importados e nacionais selecionados a dedo. Entrega para todo o Brasil.",
+    "Revendedor independente de produtos O Boticário. Perfumes e cosméticos 100% originais, com entrega para todo o Brasil.",
+  resellerNotice: "Revendedor independente de produtos O Boticário",
   email: "contato@essenza.com.br",
   instagram: "@essenzaperfumaria",
   freeShippingMin: 29900, // frete grátis acima de R$ 299 (em centavos)

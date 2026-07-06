@@ -1,14 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getProduct, products } from "@/lib/products";
+import { getProduct, getProducts } from "@/lib/catalog";
 import { formatPrice } from "@/lib/config";
 import BottleArt from "@/components/BottleArt";
 import ProductCard from "@/components/ProductCard";
 import AddToCart from "@/components/AddToCart";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -16,7 +14,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   return { title: product?.name ?? "Produto" };
 }
 
@@ -26,11 +24,11 @@ export default async function ProdutoPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const product = await getProduct(slug);
   if (!product) notFound();
 
-  const related = products
-    .filter((p) => p.category === product.category && p.slug !== product.slug)
+  const related = (await getProducts({ category: product.category }))
+    .filter((p) => p.slug !== product.slug)
     .slice(0, 4);
 
   return (
@@ -62,7 +60,16 @@ export default async function ProdutoPage({
             em até 3x sem juros no cartão · Pix com aprovação imediata
           </p>
 
-          <AddToCart slug={product.slug} />
+          <AddToCart
+            product={{
+              slug: product.slug,
+              name: product.name,
+              price: product.price,
+              ml: product.ml,
+              concentration: product.concentration,
+              art: product.art,
+            }}
+          />
 
           <p className="mt-8 leading-relaxed text-stone-warm">{product.description}</p>
 

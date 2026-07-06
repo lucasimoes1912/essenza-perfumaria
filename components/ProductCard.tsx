@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Product } from "@/lib/products";
+import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/config";
 import BottleArt from "./BottleArt";
 

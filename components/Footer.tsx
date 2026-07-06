@@ -41,7 +41,17 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-line py-4 text-center text-xs text-stone-warm">
-        © {new Date().getFullYear()} {store.name} {store.tagline}. Todos os direitos reservados.
+        <p>
+          © {new Date().getFullYear()} {store.name} {store.tagline}. Todos os direitos reservados.
+        </p>
+        <p className="mt-1">
+          {store.resellerNotice}. Este site não é o site oficial de O Boticário.
+        </p>
+        <p className="mt-1">
+          <Link href="/admin" className="hover:text-gold">
+            Área do lojista
+          </Link>
+        </p>
       </div>
     </footer>
   );

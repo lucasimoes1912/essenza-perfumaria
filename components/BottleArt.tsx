@@ -1,4 +1,4 @@
-import type { BottleArt as Art } from "@/lib/products";
+import type { BottleArt as Art } from "@/lib/types";
 
 /**
  * Ilustração SVG de frasco de perfume gerada a partir da configuração do

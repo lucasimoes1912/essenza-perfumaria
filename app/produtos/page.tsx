@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { products, categories, type Category } from "@/lib/products";
+import { getProducts } from "@/lib/catalog";
+import { categories, type Category } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Catálogo" };
 
 export default async function ProdutosPage({
@@ -15,9 +17,7 @@ export default async function ProdutosPage({
     | Category
     | undefined;
 
-  const list = active
-    ? products.filter((p) => p.category === active)
-    : products;
+  const list = await getProducts({ category: active });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

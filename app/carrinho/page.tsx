@@ -7,7 +7,7 @@ import { formatPrice, store } from "@/lib/config";
 import BottleArt from "@/components/BottleArt";
 
 export default function CarrinhoPage() {
-  const { detailed, setQty, remove, total, count } = useCart();
+  const { items, setQty, remove, total, count } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export default function CarrinhoPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: detailed.map((i) => ({ slug: i.product.slug, qty: i.qty })),
+          items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
         }),
       });
       const data = await res.json();
@@ -57,36 +57,36 @@ export default function CarrinhoPage() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
         <ul className="space-y-4">
-          {detailed.map(({ product, qty }) => (
+          {items.map((item) => (
             <li
-              key={product.slug}
+              key={item.slug}
               className="flex gap-4 rounded-2xl border border-line bg-white p-4"
             >
               <Link
-                href={`/produtos/${product.slug}`}
+                href={`/produtos/${item.slug}`}
                 className="flex h-28 w-24 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: product.art.bg }}
+                style={{ backgroundColor: item.art.bg }}
               >
-                <BottleArt art={product.art} className="h-20" />
+                <BottleArt art={item.art} className="h-20" />
               </Link>
               <div className="flex flex-1 flex-col">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <Link
-                      href={`/produtos/${product.slug}`}
+                      href={`/produtos/${item.slug}`}
                       className="font-serif text-lg font-semibold hover:text-gold"
                     >
-                      {product.name}
+                      {item.name}
                     </Link>
                     <p className="text-xs text-stone-warm">
-                      {product.concentration} · {product.ml} ml
+                      {item.concentration} · {item.ml} ml
                     </p>
                   </div>
                   <button
                     type="button"
-                    onClick={() => remove(product.slug)}
+                    onClick={() => remove(item.slug)}
                     className="text-sm text-stone-warm hover:text-red-500"
-                    aria-label={`Remover ${product.name}`}
+                    aria-label={`Remover ${item.name}`}
                   >
                     Remover
                   </button>
@@ -95,23 +95,23 @@ export default function CarrinhoPage() {
                   <div className="flex items-center rounded-full border border-line">
                     <button
                       type="button"
-                      onClick={() => setQty(product.slug, qty - 1)}
+                      onClick={() => setQty(item.slug, item.qty - 1)}
                       className="px-3 py-1.5 text-stone-warm hover:text-ink"
                       aria-label="Diminuir"
                     >
                       −
                     </button>
-                    <span className="w-7 text-center text-sm font-semibold">{qty}</span>
+                    <span className="w-7 text-center text-sm font-semibold">{item.qty}</span>
                     <button
                       type="button"
-                      onClick={() => setQty(product.slug, qty + 1)}
+                      onClick={() => setQty(item.slug, item.qty + 1)}
                       className="px-3 py-1.5 text-stone-warm hover:text-ink"
                       aria-label="Aumentar"
                     >
                       +
                     </button>
                   </div>
-                  <p className="font-semibold">{formatPrice(product.price * qty)}</p>
+                  <p className="font-semibold">{formatPrice(item.price * item.qty)}</p>
                 </div>
               </div>
             </li>

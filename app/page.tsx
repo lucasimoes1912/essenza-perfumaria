@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { store, formatPrice } from "@/lib/config";
-import { getFeatured, categories } from "@/lib/products";
+import { getFeatured } from "@/lib/catalog";
+import { categories } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 
-export default function Home() {
-  const featured = getFeatured();
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const featured = await getFeatured();
 
   return (
     <>
@@ -13,14 +16,15 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:py-24">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">
-              Perfumaria selecionada
+              {store.resellerNotice}
             </p>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-tight sm:text-5xl">
               {store.slogan}
             </h1>
             <p className="mt-4 max-w-md text-stone-warm">
-              Fragrâncias marcantes para cada ocasião — curadoria própria,
-              envio rápido e pagamento seguro via Pix ou cartão.
+              Os clássicos de O Boticário que você ama — Malbec, Lily, Egeo e
+              muito mais. Produtos originais, envio rápido e pagamento seguro
+              via Pix ou cartão.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -79,7 +83,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((p) => (
+          {featured.slice(0, 4).map((p) => (
             <ProductCard key={p.slug} product={p} />
           ))}
         </div>
@@ -119,7 +123,7 @@ export default function Home() {
           <div>
             <p className="text-2xl">💎</p>
             <p className="mt-2 font-semibold">100% originais</p>
-            <p className="text-sm text-stone-warm">Garantia de procedência</p>
+            <p className="text-sm text-stone-warm">Direto do catálogo O Boticário</p>
           </div>
         </div>
       </section>

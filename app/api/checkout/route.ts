@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MercadoPagoConfig, Preference } from "mercadopago";
-import { getProduct } from "@/lib/products";
+import { getProductsBySlugs } from "@/lib/catalog";
+import { createOrder, setOrderPreference } from "@/lib/orders";
 import { store } from "@/lib/config";
 
 interface CheckoutBody {
@@ -30,35 +31,51 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 });
   }
 
-  // Preços SEMPRE resolvidos no servidor a partir do catálogo — nunca
+  // Preços SEMPRE resolvidos no servidor a partir do banco — nunca
   // confiar em valores vindos do cliente.
-  const items = [];
+  const products = await getProductsBySlugs(body.items.map((i) => i.slug));
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+
+  const orderItems: { slug: string; name: string; qty: number; unitPrice: number }[] = [];
   for (const { slug, qty } of body.items) {
-    const product = getProduct(slug);
+    const product = bySlug.get(slug);
     const quantity = Math.floor(Number(qty));
     if (!product || !Number.isFinite(quantity) || quantity < 1 || quantity > 99) {
       return NextResponse.json(
-        { error: `Item inválido no carrinho: ${slug}` },
+        { error: `Item inválido ou indisponível no carrinho: ${slug}` },
         { status: 400 }
       );
     }
-    items.push({
-      id: product.slug,
-      title: `${product.name} — ${product.concentration} ${product.ml}ml`,
-      quantity,
-      currency_id: "BRL",
-      unit_price: product.price / 100,
+    orderItems.push({
+      slug: product.slug,
+      name: product.name,
+      qty: quantity,
+      unitPrice: product.price,
     });
   }
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const total = orderItems.reduce((n, i) => n + i.unitPrice * i.qty, 0);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
   try {
+    // Registra o pedido antes de ir ao Mercado Pago; o webhook atualiza o
+    // status usando o external_reference.
+    const orderId = await createOrder(orderItems, total);
+
     const mp = new MercadoPagoConfig({ accessToken: token });
     const preference = await new Preference(mp).create({
       body: {
-        items,
+        items: orderItems.map((i) => {
+          const p = bySlug.get(i.slug)!;
+          return {
+            id: i.slug,
+            title: `${i.name} — ${p.concentration} ${p.ml}ml`,
+            quantity: i.qty,
+            currency_id: "BRL",
+            unit_price: i.unitPrice / 100,
+          };
+        }),
+        external_reference: String(orderId),
         statement_descriptor: store.name.toUpperCase(),
         back_urls: {
           success: `${siteUrl}/checkout/sucesso`,
@@ -70,9 +87,11 @@ export async function POST(req: Request) {
       },
     });
 
+    if (preference.id) await setOrderPreference(orderId, preference.id);
+
     return NextResponse.json({ initPoint: preference.init_point });
   } catch (e) {
-    console.error("Erro ao criar preferência Mercado Pago:", e);
+    console.error("Erro ao criar checkout:", e);
     return NextResponse.json(
       { error: "Não foi possível iniciar o pagamento. Tente novamente." },
       { status: 502 }

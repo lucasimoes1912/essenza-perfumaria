@@ -7,28 +7,22 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getProduct, type Product } from "@/lib/products";
-
-export interface CartItem {
-  slug: string;
-  qty: number;
-}
+import type { CartItem } from "@/lib/types";
 
 interface CartApi {
   items: CartItem[];
-  add: (slug: string, qty?: number) => void;
+  add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   remove: (slug: string) => void;
   setQty: (slug: string, qty: number) => void;
   clear: () => void;
   count: number;
   /** total em centavos */
   total: number;
-  /** itens resolvidos com dados do produto */
-  detailed: { product: Product; qty: number }[];
 }
 
 const CartContext = createContext<CartApi | null>(null);
-const STORAGE_KEY = "essenza-cart-v1";
+// v2: itens agora guardam snapshot do produto (catálogo migrou para o banco)
+const STORAGE_KEY = "essenza-cart-v2";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -48,21 +42,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, hydrated]);
 
-  const api = useMemo<CartApi>(() => {
-    const detailed = items
-      .map((i) => ({ product: getProduct(i.slug), qty: i.qty }))
-      .filter((i): i is { product: Product; qty: number } => !!i.product);
-
-    return {
+  const api = useMemo<CartApi>(
+    () => ({
       items,
-      add: (slug, qty = 1) =>
+      add: (item, qty = 1) =>
         setItems((prev) => {
-          const found = prev.find((i) => i.slug === slug);
+          const found = prev.find((i) => i.slug === item.slug);
           if (found)
             return prev.map((i) =>
-              i.slug === slug ? { ...i, qty: i.qty + qty } : i
+              i.slug === item.slug ? { ...i, qty: i.qty + qty } : i
             );
-          return [...prev, { slug, qty }];
+          return [...prev, { ...item, qty }];
         }),
       remove: (slug) => setItems((prev) => prev.filter((i) => i.slug !== slug)),
       setQty: (slug, qty) =>
@@ -72,11 +62,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : prev.map((i) => (i.slug === slug ? { ...i, qty } : i))
         ),
       clear: () => setItems([]),
-      count: detailed.reduce((n, i) => n + i.qty, 0),
-      total: detailed.reduce((n, i) => n + i.product.price * i.qty, 0),
-      detailed,
-    };
-  }, [items]);
+      count: items.reduce((n, i) => n + i.qty, 0),
+      total: items.reduce((n, i) => n + i.price * i.qty, 0),
+    }),
+    [items]
+  );
 
   return <CartContext.Provider value={api}>{children}</CartContext.Provider>;
 }
