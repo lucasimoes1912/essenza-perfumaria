@@ -43,6 +43,7 @@ export default async function AdminPedidos() {
                 <th className="p-4">Itens</th>
                 <th className="p-4">Total</th>
                 <th className="p-4">Comprador</th>
+                <th className="p-4">Revendedor</th>
                 <th className="p-4">Status</th>
               </tr>
             </thead>
@@ -67,6 +68,7 @@ export default async function AdminPedidos() {
                   </td>
                   <td className="p-4 font-semibold">{formatPrice(o.total)}</td>
                   <td className="p-4">{o.payerEmail ?? "—"}</td>
+                  <td className="p-4">{o.resellerName ?? "—"}</td>
                   <td className="p-4">
                     <span
                       className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyle[o.status] ?? "bg-sand text-stone-warm"}`}

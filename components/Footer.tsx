@@ -51,6 +51,10 @@ export default function Footer() {
           <Link href="/admin" className="hover:text-gold">
             Área do lojista
           </Link>
+          {" · "}
+          <Link href="/revendedor" className="hover:text-gold">
+            Área do revendedor
+          </Link>
         </p>
       </div>
     </footer>

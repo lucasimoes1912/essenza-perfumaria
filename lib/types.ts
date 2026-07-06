@@ -50,6 +50,8 @@ export interface Order {
   mpPaymentId: string | null;
   mpPreferenceId: string | null;
   payerEmail: string | null;
+  resellerId: number | null;
+  resellerName: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { getProductsBySlugs } from "@/lib/catalog";
 import { createOrder, setOrderPreference } from "@/lib/orders";
+import { getActiveResellerByCode } from "@/lib/resellers";
+import { REF_COOKIE } from "@/lib/reseller-auth";
 import { store } from "@/lib/config";
 
 interface CheckoutBody {
@@ -57,10 +60,19 @@ export async function POST(req: Request) {
   const total = orderItems.reduce((n, i) => n + i.unitPrice * i.qty, 0);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+  // Atribuição de venda: se o cliente chegou por link de revendedor
+  // (?rev=codigo → cookie), o pedido fica vinculado a ele.
+  let resellerId: number | null = null;
+  const refCode = (await cookies()).get(REF_COOKIE)?.value;
+  if (refCode) {
+    const reseller = await getActiveResellerByCode(refCode);
+    if (reseller) resellerId = reseller.id;
+  }
+
   try {
     // Registra o pedido antes de ir ao Mercado Pago; o webhook atualiza o
     // status usando o external_reference.
-    const orderId = await createOrder(orderItems, total);
+    const orderId = await createOrder(orderItems, total, resellerId);
 
     const mp = new MercadoPagoConfig({ accessToken: token });
     const preference = await new Preference(mp).create({

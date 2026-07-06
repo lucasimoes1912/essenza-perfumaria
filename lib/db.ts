@@ -56,6 +56,19 @@ async function bootstrap(): Promise<void> {
       created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+
+    CREATE TABLE IF NOT EXISTS resellers (
+      id            SERIAL PRIMARY KEY,
+      name          TEXT NOT NULL,
+      email         TEXT UNIQUE NOT NULL,
+      code          TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      active        BOOLEAN NOT NULL DEFAULT true,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS
+      reseller_id INTEGER REFERENCES resellers(id) ON DELETE SET NULL;
   `);
 
   const { rows } = await pool.query("SELECT count(*)::int AS n FROM products");

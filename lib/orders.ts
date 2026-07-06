@@ -9,6 +9,8 @@ interface OrderRow {
   mp_preference_id: string | null;
   mp_payment_id: string | null;
   payer_email: string | null;
+  reseller_id: number | null;
+  reseller_name?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +24,8 @@ function toOrder(r: OrderRow): Order {
     mpPreferenceId: r.mp_preference_id,
     mpPaymentId: r.mp_payment_id,
     payerEmail: r.payer_email,
+    resellerId: r.reseller_id,
+    resellerName: r.reseller_name ?? null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -29,12 +33,13 @@ function toOrder(r: OrderRow): Order {
 
 export async function createOrder(
   items: Order["items"],
-  total: number
+  total: number,
+  resellerId: number | null = null
 ): Promise<number> {
   const rows = await q<{ id: number }>(
-    `INSERT INTO orders (status, total, items) VALUES ('aberto', $1, $2)
-     RETURNING id`,
-    [total, JSON.stringify(items)]
+    `INSERT INTO orders (status, total, items, reseller_id)
+     VALUES ('aberto', $1, $2, $3) RETURNING id`,
+    [total, JSON.stringify(items), resellerId]
   );
   return rows[0].id;
 }
@@ -63,8 +68,23 @@ export async function updateOrderPayment(
 
 export async function listOrders(limit = 100): Promise<Order[]> {
   const rows = await q<OrderRow>(
-    `SELECT * FROM orders ORDER BY created_at DESC LIMIT $1`,
+    `SELECT o.*, r.name AS reseller_name
+     FROM orders o
+     LEFT JOIN resellers r ON r.id = o.reseller_id
+     ORDER BY o.created_at DESC LIMIT $1`,
     [limit]
+  );
+  return rows.map(toOrder);
+}
+
+export async function listOrdersByReseller(
+  resellerId: number,
+  limit = 100
+): Promise<Order[]> {
+  const rows = await q<OrderRow>(
+    `SELECT * FROM orders WHERE reseller_id=$1
+     ORDER BY created_at DESC LIMIT $2`,
+    [resellerId, limit]
   );
   return rows.map(toOrder);
 }
