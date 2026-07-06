@@ -13,7 +13,8 @@ RUN npm run build
 FROM node:24-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV HOSTNAME=0.0.0.0
+# "::" = IPv6 dual-stack; a rede interna do Railway roteia via IPv6
+ENV HOSTNAME=::
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
