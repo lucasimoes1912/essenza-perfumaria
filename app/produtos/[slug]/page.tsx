@@ -60,16 +60,34 @@ export default async function ProdutoPage({
             em até 3x sem juros no cartão · Pix com aprovação imediata
           </p>
 
-          <AddToCart
-            product={{
-              slug: product.slug,
-              name: product.name,
-              price: product.price,
-              ml: product.ml,
-              concentration: product.concentration,
-              art: product.art,
-            }}
-          />
+          {product.stock > 0 ? (
+            <>
+              <AddToCart
+                product={{
+                  slug: product.slug,
+                  name: product.name,
+                  price: product.price,
+                  ml: product.ml,
+                  concentration: product.concentration,
+                  art: product.art,
+                }}
+                maxQty={product.stock}
+              />
+              {product.stock <= 3 && (
+                <p className="mt-3 text-sm font-semibold text-red-500">
+                  ⚡ Últimas {product.stock} unidade(s) em estoque!
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="mt-6 rounded-2xl bg-sand p-5">
+              <p className="font-semibold">😔 Produto esgotado</p>
+              <p className="mt-1 text-sm text-stone-warm">
+                Este perfume acabou, mas volta logo! Enquanto isso, veja as
+                sugestões abaixo.
+              </p>
+            </div>
+          )}
 
           <p className="mt-8 leading-relaxed text-stone-warm">{product.description}</p>
 

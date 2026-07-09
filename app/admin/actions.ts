@@ -91,6 +91,7 @@ export async function saveProductAction(formData: FormData): Promise<void> {
     },
     featured: formData.get("featured") === "on",
     active: formData.get("active") === "on",
+    stock: Math.max(0, Math.floor(Number(formData.get("stock")) || 0)),
     art: {
       from: String(formData.get("artFrom") ?? "#c2a25a"),
       to: String(formData.get("artTo") ?? "#7a5a20"),

@@ -40,6 +40,7 @@ async function bootstrap(): Promise<void> {
       notes       JSONB NOT NULL DEFAULT '{"topo":[],"coracao":[],"fundo":[]}',
       featured    BOOLEAN NOT NULL DEFAULT false,
       active      BOOLEAN NOT NULL DEFAULT true,
+      stock       INTEGER NOT NULL DEFAULT 10,
       art         JSONB NOT NULL,
       created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -69,6 +70,11 @@ async function bootstrap(): Promise<void> {
 
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS
       reseller_id INTEGER REFERENCES resellers(id) ON DELETE SET NULL;
+
+    -- Estoque: default 10 para os produtos existentes até a lista real
+    -- ser importada; depois o admin mantém as quantidades.
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS
+      stock INTEGER NOT NULL DEFAULT 10;
   `);
 
   const { rows } = await pool.query("SELECT count(*)::int AS n FROM products");

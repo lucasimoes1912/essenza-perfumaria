@@ -16,6 +16,7 @@ interface ProductRow {
   notes: Product["notes"];
   featured: boolean;
   active: boolean;
+  stock: number;
   art: Product["art"];
 }
 
@@ -35,12 +36,13 @@ function toProduct(r: ProductRow): Product {
     notes: r.notes,
     featured: r.featured,
     active: r.active,
+    stock: r.stock,
     art: r.art,
   };
 }
 
 const COLS = `id, slug, name, brand, category, price, compare_at, ml,
-  concentration, short, description, notes, featured, active, art`;
+  concentration, short, description, notes, featured, active, stock, art`;
 
 export async function getProducts(opts?: {
   category?: Category;
@@ -110,6 +112,7 @@ export interface ProductInput {
   notes: Product["notes"];
   featured: boolean;
   active: boolean;
+  stock: number;
   art: Product["art"];
 }
 
@@ -117,12 +120,12 @@ export async function createProduct(p: ProductInput): Promise<void> {
   await q(
     `INSERT INTO products
        (slug, name, brand, category, price, compare_at, ml, concentration,
-        short, description, notes, featured, active, art)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+        short, description, notes, featured, active, stock, art)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
     [
       p.slug, p.name, p.brand, p.category, p.price, p.compareAt, p.ml,
       p.concentration, p.short, p.description, JSON.stringify(p.notes),
-      p.featured, p.active, JSON.stringify(p.art),
+      p.featured, p.active, p.stock, JSON.stringify(p.art),
     ]
   );
 }
@@ -132,14 +135,27 @@ export async function updateProduct(id: number, p: ProductInput): Promise<void> 
     `UPDATE products SET
        slug=$2, name=$3, brand=$4, category=$5, price=$6, compare_at=$7,
        ml=$8, concentration=$9, short=$10, description=$11, notes=$12,
-       featured=$13, active=$14, art=$15, updated_at=now()
+       featured=$13, active=$14, stock=$15, art=$16, updated_at=now()
      WHERE id=$1`,
     [
       id, p.slug, p.name, p.brand, p.category, p.price, p.compareAt, p.ml,
       p.concentration, p.short, p.description, JSON.stringify(p.notes),
-      p.featured, p.active, JSON.stringify(p.art),
+      p.featured, p.active, p.stock, JSON.stringify(p.art),
     ]
   );
+}
+
+/** Desconta estoque dos itens vendidos (nunca abaixo de zero). */
+export async function decrementStock(
+  items: { slug: string; qty: number }[]
+): Promise<void> {
+  for (const { slug, qty } of items) {
+    await q(
+      `UPDATE products SET stock = GREATEST(0, stock - $2), updated_at=now()
+       WHERE slug=$1`,
+      [slug, qty]
+    );
+  }
 }
 
 export async function deleteProduct(id: number): Promise<void> {

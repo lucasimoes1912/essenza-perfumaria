@@ -28,6 +28,8 @@ export interface Product {
   notes: { topo: string[]; coracao: string[]; fundo: string[] };
   featured: boolean;
   active: boolean;
+  /** unidades em estoque; 0 = esgotado */
+  stock: number;
   art: BottleArt;
 }
 

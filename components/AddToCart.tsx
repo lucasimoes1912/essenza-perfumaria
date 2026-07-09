@@ -7,8 +7,10 @@ import { useCart } from "./CartContext";
 
 export default function AddToCart({
   product,
+  maxQty,
 }: {
   product: Omit<CartItem, "qty">;
+  maxQty: number;
 }) {
   const { add } = useCart();
   const router = useRouter();
@@ -29,7 +31,7 @@ export default function AddToCart({
         <span className="w-8 text-center font-semibold">{qty}</span>
         <button
           type="button"
-          onClick={() => setQty((q) => q + 1)}
+          onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
           className="px-4 py-2.5 text-lg text-stone-warm hover:text-ink"
           aria-label="Aumentar quantidade"
         >

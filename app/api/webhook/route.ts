@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { updateOrderPayment } from "@/lib/orders";
+import { decrementStock } from "@/lib/catalog";
 
 /**
  * Webhook de notificações do Mercado Pago.
@@ -29,12 +30,19 @@ export async function POST(req: Request) {
       const payment = await new Payment(mp).get({ id: String(paymentId) });
       const orderId = Number(payment.external_reference);
       if (Number.isInteger(orderId) && orderId > 0 && payment.id) {
-        await updateOrderPayment(orderId, {
-          status: payment.status ?? "pending",
+        const status = payment.status ?? "pending";
+        const result = await updateOrderPayment(orderId, {
+          status,
           paymentId: String(payment.id),
           payerEmail: payment.payer?.email ?? null,
         });
-        console.log(`[MP webhook] pedido #${orderId} → ${payment.status}`);
+        // Desconta estoque só na PRIMEIRA vez que o pedido vira "approved"
+        if (result && status === "approved" && result.oldStatus !== "approved") {
+          await decrementStock(
+            result.items.map((i) => ({ slug: i.slug, qty: i.qty }))
+          );
+        }
+        console.log(`[MP webhook] pedido #${orderId} → ${status}`);
       }
     } catch (e) {
       // Loga mas responde 200 para o MP não reenviar em loop infinito;

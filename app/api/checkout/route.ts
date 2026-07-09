@@ -49,6 +49,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    if (product.stock < quantity) {
+      return NextResponse.json(
+        {
+          error:
+            product.stock === 0
+              ? `"${product.name}" esgotou. Remova-o da sacola para continuar.`
+              : `"${product.name}" tem só ${product.stock} unidade(s) em estoque. Ajuste a quantidade.`,
+        },
+        { status: 409 }
+      );
+    }
     orderItems.push({
       slug: product.slug,
       name: product.name,

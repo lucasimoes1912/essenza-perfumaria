@@ -106,6 +106,16 @@ export default function ProductForm({
                 className={field}
               />
             </label>
+            <label className={label}>
+              Estoque (unidades) — 0 mostra “esgotado” na loja
+              <input
+                name="stock"
+                type="number"
+                min={0}
+                defaultValue={product?.stock ?? 0}
+                className={field}
+              />
+            </label>
           </div>
         </div>
 

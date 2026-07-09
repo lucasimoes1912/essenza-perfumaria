@@ -29,6 +29,7 @@ export default async function AdminProdutos() {
               <th className="p-4">Produto</th>
               <th className="p-4">Categoria</th>
               <th className="p-4">Preço</th>
+              <th className="p-4">Estoque</th>
               <th className="p-4">Destaque</th>
               <th className="p-4">Status</th>
               <th className="p-4"></th>
@@ -55,6 +56,19 @@ export default async function AdminProdutos() {
                 </td>
                 <td className="p-4 capitalize">{p.category}</td>
                 <td className="p-4 font-semibold">{formatPrice(p.price)}</td>
+                <td className="p-4">
+                  {p.stock === 0 ? (
+                    <span className="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
+                      Esgotado
+                    </span>
+                  ) : p.stock <= 3 ? (
+                    <span className="rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700">
+                      {p.stock} un.
+                    </span>
+                  ) : (
+                    <span className="font-semibold">{p.stock} un.</span>
+                  )}
+                </td>
                 <td className="p-4">{p.featured ? "⭐" : "—"}</td>
                 <td className="p-4">
                   {p.active ? (

@@ -54,16 +54,26 @@ export async function setOrderPreference(
   ]);
 }
 
+/**
+ * Atualiza o pagamento e retorna o status ANTERIOR + itens do pedido,
+ * para o webhook descontar estoque apenas na transição para "approved"
+ * (o Mercado Pago pode notificar o mesmo pagamento várias vezes).
+ */
 export async function updateOrderPayment(
   orderId: number,
   data: { status: string; paymentId: string; payerEmail?: string | null }
-): Promise<void> {
-  await q(
+): Promise<{ oldStatus: string; items: Order["items"] } | null> {
+  const rows = await q<{ old_status: string; items: Order["items"] }>(
     `UPDATE orders SET status=$2, mp_payment_id=$3,
        payer_email=COALESCE($4, payer_email), updated_at=now()
-     WHERE id=$1`,
+     FROM (SELECT id, status AS old_status FROM orders WHERE id=$1 FOR UPDATE) prev
+     WHERE orders.id = prev.id
+     RETURNING prev.old_status, orders.items`,
     [orderId, data.status, data.paymentId, data.payerEmail ?? null]
   );
+  return rows[0]
+    ? { oldStatus: rows[0].old_status, items: rows[0].items }
+    : null;
 }
 
 export async function listOrders(limit = 100): Promise<Order[]> {
