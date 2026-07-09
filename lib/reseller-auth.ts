@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getReseller, type Reseller } from "./resellers";
 
 export const RESELLER_COOKIE = "essenza_revendedor";
+/** Sessão de revendedor expira em 7 dias — depois disso, novo login. */
+export const RESELLER_SESSION_SECONDS = 60 * 60 * 24 * 7;
 /** Cookie de atribuição de venda (?rev=codigo), lido no checkout. */
 export const REF_COOKIE = "essenza_ref";
 
@@ -13,24 +15,33 @@ function secret(): string {
   return s;
 }
 
-function sign(id: number): string {
+function sign(id: number, expiresAtMs: number): string {
   return createHmac("sha256", secret())
-    .update(`essenza-reseller:${id}`)
+    .update(`essenza-reseller-v2:${id}:${expiresAtMs}`)
     .digest("hex");
 }
 
+/** Token: "<id>.<expiraEmMs>.<hmac>", com expiração assinada. */
 export function sessionValue(id: number): string {
-  return `${id}.${sign(id)}`;
+  const expiresAtMs = Date.now() + RESELLER_SESSION_SECONDS * 1000;
+  return `${id}.${expiresAtMs}.${sign(id, expiresAtMs)}`;
 }
 
 function parseSession(value: string | undefined): number | null {
   if (!value) return null;
-  const dot = value.indexOf(".");
-  if (dot <= 0) return null;
-  const id = Number(value.slice(0, dot));
-  const mac = value.slice(dot + 1);
+  const parts = value.split(".");
+  if (parts.length !== 3) return null; // formato antigo é rejeitado
+  const id = Number(parts[0]);
+  const expiresAtMs = Number(parts[1]);
+  const mac = parts[2];
   if (!Number.isInteger(id) || id <= 0) return null;
-  const expected = sign(id);
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) return null;
+  let expected: string;
+  try {
+    expected = sign(id, expiresAtMs);
+  } catch {
+    return null;
+  }
   const a = Buffer.from(mac);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;

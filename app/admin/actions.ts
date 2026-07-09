@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   ADMIN_COOKIE,
+  ADMIN_SESSION_SECONDS,
   passwordMatches,
   requireAdmin,
   sessionToken,
@@ -25,7 +26,7 @@ export async function loginAction(formData: FormData): Promise<void> {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 7, // 7 dias
+    maxAge: ADMIN_SESSION_SECONDS, // 12 horas
     path: "/",
   });
   redirect("/admin");

@@ -3,7 +3,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authenticateReseller } from "@/lib/resellers";
-import { RESELLER_COOKIE, sessionValue } from "@/lib/reseller-auth";
+import {
+  RESELLER_COOKIE,
+  RESELLER_SESSION_SECONDS,
+  sessionValue,
+} from "@/lib/reseller-auth";
 
 export async function resellerLoginAction(formData: FormData): Promise<void> {
   const email = String(formData.get("email") ?? "");
@@ -17,7 +21,7 @@ export async function resellerLoginAction(formData: FormData): Promise<void> {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * 30, // 30 dias
+    maxAge: RESELLER_SESSION_SECONDS, // 7 dias
     path: "/",
   });
   redirect("/revendedor");
