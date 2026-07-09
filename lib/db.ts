@@ -83,13 +83,14 @@ async function bootstrap(): Promise<void> {
       await pool.query(
         `INSERT INTO products
            (slug, name, brand, category, price, compare_at, ml, concentration,
-            short, description, notes, featured, art)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+            short, description, notes, featured, stock, art)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
          ON CONFLICT (slug) DO NOTHING`,
         [
           p.slug, p.name, p.brand, p.category, p.price, p.compareAt ?? null,
           p.ml, p.concentration, p.short, p.description,
-          JSON.stringify(p.notes), p.featured ?? false, JSON.stringify(p.art),
+          JSON.stringify(p.notes), p.featured ?? false, p.stock,
+          JSON.stringify(p.art),
         ]
       );
     }

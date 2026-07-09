@@ -46,7 +46,9 @@ export default function ProductCard({ product }: { product: Product }) {
               {formatPrice(product.compareAt)}
             </span>
           )}
-          <span className="ml-auto text-xs text-stone-warm">{product.ml} ml</span>
+          {product.ml > 0 && (
+            <span className="ml-auto text-xs text-stone-warm">{product.ml} ml</span>
+          )}
         </div>
       </div>
     </Link>

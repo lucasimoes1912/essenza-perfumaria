@@ -49,7 +49,8 @@ export default async function AdminProdutos() {
                     <div>
                       <p className="font-semibold">{p.name}</p>
                       <p className="text-xs text-stone-warm">
-                        {p.concentration} · {p.ml} ml
+                        {p.concentration}
+                        {p.ml > 0 && <> · {p.ml} ml</>}
                       </p>
                     </div>
                   </div>

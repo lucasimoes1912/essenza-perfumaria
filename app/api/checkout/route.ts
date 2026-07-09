@@ -92,7 +92,7 @@ export async function POST(req: Request) {
           const p = bySlug.get(i.slug)!;
           return {
             id: i.slug,
-            title: `${i.name} — ${p.concentration} ${p.ml}ml`,
+            title: `${i.name} — ${p.concentration}${p.ml > 0 ? ` ${p.ml}ml` : ""}`,
             quantity: i.qty,
             currency_id: "BRL",
             unit_price: i.unitPrice / 100,

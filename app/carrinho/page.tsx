@@ -79,7 +79,8 @@ export default function CarrinhoPage() {
                       {item.name}
                     </Link>
                     <p className="text-xs text-stone-warm">
-                      {item.concentration} · {item.ml} ml
+                      {item.concentration}
+                      {item.ml > 0 && <> · {item.ml} ml</>}
                     </p>
                   </div>
                   <button

@@ -43,7 +43,8 @@ export default async function ProdutoPage({
 
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">
-            {product.category} · {product.concentration} · {product.ml} ml
+            {product.category} · {product.concentration}
+            {product.ml > 0 && <> · {product.ml} ml</>}
           </p>
           <h1 className="mt-3 font-serif text-4xl font-semibold">{product.name}</h1>
           <p className="mt-1 text-sm text-stone-warm">por {product.brand}</p>
@@ -91,6 +92,9 @@ export default async function ProdutoPage({
 
           <p className="mt-8 leading-relaxed text-stone-warm">{product.description}</p>
 
+          {(product.notes.topo.length > 0 ||
+            product.notes.coracao.length > 0 ||
+            product.notes.fundo.length > 0) && (
           <div className="mt-8 grid grid-cols-3 gap-4 rounded-2xl border border-line bg-white p-5 text-sm">
             <div>
               <p className="font-semibold text-gold">Topo</p>
@@ -111,6 +115,7 @@ export default async function ProdutoPage({
               </ul>
             </div>
           </div>
+          )}
         </div>
       </div>
 

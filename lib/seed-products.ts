@@ -1,9 +1,10 @@
 import type { BottleArt, Category } from "./types";
 
 /**
- * Catálogo inicial: linhas clássicas de O Boticário.
- * Preços são ESTIMATIVAS em centavos — ajuste os valores reais de revenda
- * no painel admin (/admin). Notas olfativas são aproximações editáveis.
+ * Catálogo real: estoque recebido por e-mail em 09/07/2026 (pedido de
+ * revendedor O Boticário). Preços = CUSTO da lista, em centavos — o
+ * cliente define os preços de venda no painel admin (/admin).
+ * ml = 0 significa "não exibir tamanho em ml" (batom, sabonete, combo).
  */
 export interface SeedProduct {
   slug: string;
@@ -18,16 +19,39 @@ export interface SeedProduct {
   description: string;
   notes: { topo: string[]; coracao: string[]; fundo: string[] };
   featured?: boolean;
+  stock: number;
   art: BottleArt;
 }
 
 export const seedProducts: SeedProduct[] = [
   {
-    slug: "malbec-tradicional",
-    name: "Malbec Tradicional",
+    // cód. Boticário 47.339
+    slug: "liz-sublime",
+    name: "Liz Sublime",
+    brand: "O Boticário",
+    category: "feminino",
+    price: 12741,
+    ml: 100,
+    concentration: "Desodorante Colônia",
+    short: "A face mais intensa e radiante de Liz.",
+    description:
+      "Liz Sublime eleva o floral frutado clássico de Liz a um novo patamar: mais cremoso, mais envolvente e com rastro marcante. Elegância que entra no ambiente antes de você.",
+    notes: {
+      topo: ["Pêssego", "Bergamota"],
+      coracao: ["Jasmim", "Rosa"],
+      fundo: ["Âmbar", "Almíscar"],
+    },
+    featured: true,
+    stock: 1,
+    art: { from: "#f2c19b", to: "#c96f45", shape: "tall", bg: "#fbf0e8" },
+  },
+  {
+    // cód. 84.387
+    slug: "malbec-desodorante-colonia",
+    name: "Malbec",
     brand: "O Boticário",
     category: "masculino",
-    price: 18990,
+    price: 10494,
     ml: 100,
     concentration: "Desodorante Colônia",
     short: "O clássico amadeirado inspirado no vinho Malbec.",
@@ -39,172 +63,113 @@ export const seedProducts: SeedProduct[] = [
       fundo: ["Madeiras nobres", "Âmbar"],
     },
     featured: true,
+    stock: 1,
     art: { from: "#a63446", to: "#42101c", shape: "classic", bg: "#f8ecee" },
   },
   {
-    slug: "zaad-eau-de-parfum",
-    name: "Zaad",
+    // cód. 88.688
+    slug: "cuide-se-bem-nuvem-locao-400ml",
+    name: "Cuide-se Bem Nuvem — Loção Hidratante",
     brand: "O Boticário",
-    category: "masculino",
-    price: 31990,
-    ml: 95,
-    concentration: "Eau de Parfum",
-    short: "Sofisticação amadeirada em alta concentração.",
+    category: "unissex",
+    price: 6706,
+    ml: 400,
+    concentration: "Loção Desodorante Hidratante Corporal",
+    short: "Hidratação com cheirinho de nuvem: leve e aconchegante.",
     description:
-      "O Eau de Parfum masculino premium de O Boticário: abertura cítrica especiada, coração de madeiras frescas e fundo envolvente de âmbar e sândalo. Fixação prolongada para quem não passa despercebido.",
+      "A queridinha da linha Cuide-se Bem: hidratação prolongada com a fragrância Nuvem, um acorde macio de algodão com baunilha que abraça a pele. Frasco família de 400ml.",
     notes: {
-      topo: ["Bergamota", "Cardamomo"],
-      coracao: ["Cedro", "Vetiver"],
-      fundo: ["Âmbar", "Sândalo"],
+      topo: ["Notas de algodão"],
+      coracao: ["Flor de baunilha"],
+      fundo: ["Almíscar"],
     },
     featured: true,
-    art: { from: "#d9b45a", to: "#6e5120", shape: "square", bg: "#f8f2e4" },
+    stock: 1,
+    art: { from: "#cfe4f5", to: "#8fb8dd", shape: "round", bg: "#eef5fb" },
   },
   {
-    slug: "arbo",
-    name: "Arbo",
+    // cód. 97.991
+    slug: "combo-siage-nutri-diamond",
+    name: "Combo Siàge Nutri Diamond",
+    brand: "Siàge (Eudora)",
+    category: "feminino",
+    price: 6590,
+    ml: 0,
+    concentration: "Combo capilar (2 itens)",
+    short: "Dupla de tratamento para brilho de diamante.",
+    description:
+      "Combo da linha Siàge Nutri Diamond com 2 itens para nutrição profunda e brilho intenso dos fios. Tecnologia de reparação que trata enquanto lava.",
+    notes: { topo: [], coracao: [], fundo: [] },
+    featured: true,
+    stock: 1,
+    art: { from: "#e8d49b", to: "#b8963f", shape: "tall", bg: "#f8f3e6" },
+  },
+  {
+    // cód. 85.483
+    slug: "floratta-red-body-spray",
+    name: "Floratta Red Body Spray",
     brand: "O Boticário",
-    category: "masculino",
-    price: 15990,
+    category: "feminino",
+    price: 2645,
     ml: 100,
-    concentration: "Desodorante Colônia",
-    short: "Frescor verde amadeirado, o cheiro da natureza.",
+    concentration: "Desodorante Body Spray",
+    short: "O floral frutado de Floratta Red em versão spray leve.",
     description:
-      "Inspirado na energia das florestas: notas verdes vibrantes com madeiras frescas num perfume leve, jovem e versátil para o dia a dia.",
+      "Para perfumar o corpo ao longo do dia: a fragrância romântica de Floratta Red — flores com toque de frutas vermelhas — em body spray prático para retocar quando quiser.",
     notes: {
-      topo: ["Notas verdes", "Maçã"],
-      coracao: ["Folhas de figueira", "Lavanda"],
-      fundo: ["Madeiras claras", "Almíscar"],
+      topo: ["Frutas vermelhas"],
+      coracao: ["Rosa", "Flores brancas"],
+      fundo: ["Almíscar"],
     },
-    featured: true,
-    art: { from: "#7cc08a", to: "#2f5e3a", shape: "square", bg: "#ecf5ee" },
+    stock: 1,
+    art: { from: "#e05a6a", to: "#8f1f2c", shape: "tall", bg: "#fbecee" },
   },
   {
-    slug: "quasar-classico",
-    name: "Quasar Clássico",
-    brand: "O Boticário",
-    category: "masculino",
-    price: 13990,
-    ml: 100,
-    concentration: "Desodorante Colônia",
-    short: "Frescor esportivo que atravessa gerações.",
-    description:
-      "O azul clássico das prateleiras brasileiras: cítrico aromático com gengibre e menta, refrescante e despretensioso. Perfeito para treino, trabalho e rotina.",
-    notes: {
-      topo: ["Limão", "Menta"],
-      coracao: ["Lavanda", "Gengibre"],
-      fundo: ["Almíscar", "Madeiras"],
-    },
-    art: { from: "#4aa3e0", to: "#173a6e", shape: "tall", bg: "#e9f2fa" },
-  },
-  {
-    slug: "lily-eau-de-parfum",
-    name: "Lily",
-    brand: "O Boticário",
+    // cód. 86.132
+    slug: "qdb-batom-cremoso-pop-rosa-malva",
+    name: "Batom Cremoso Pop — Rosa Malva",
+    brand: "Quem Disse, Berenice?",
     category: "feminino",
-    price: 28990,
-    ml: 75,
-    concentration: "Eau de Parfum",
-    short: "O floral chipre mais premiado de O Boticário.",
+    price: 1606,
+    ml: 0,
+    concentration: "Batom Cremoso 3,6g",
+    short: "Cor intensa e conforto num rosa malva versátil.",
     description:
-      "Feminino, sofisticado e inconfundível: lírio e jasmim sobre um fundo chipre de patchouli e baunilha. O perfume de quem quer ser lembrada.",
-    notes: {
-      topo: ["Bergamota", "Frésia"],
-      coracao: ["Lírio", "Jasmim"],
-      fundo: ["Patchouli", "Baunilha"],
-    },
-    featured: true,
-    art: { from: "#f2d9a0", to: "#c2933f", shape: "round", bg: "#fbf5e8" },
+      "Batom cremoso de cobertura uniforme e sensação confortável nos lábios. O tom Rosa Malva é aquele coringa que funciona do trabalho à festa.",
+    notes: { topo: [], coracao: [], fundo: [] },
+    stock: 1,
+    art: { from: "#e88fb0", to: "#b03060", shape: "square", bg: "#fbecf2" },
   },
   {
-    slug: "egeo-dolce",
-    name: "Egeo Dolce",
-    brand: "O Boticário",
-    category: "feminino",
-    price: 15490,
-    ml: 90,
-    concentration: "Desodorante Colônia",
-    short: "Doce na medida: marshmallow com frutas vermelhas.",
+    // cód. 52.378
+    slug: "instance-sabonete-frutas-vermelhas",
+    name: "Instance Sabonete em Barra — Frutas Vermelhas",
+    brand: "Eudora",
+    category: "unissex",
+    price: 2639,
+    ml: 0,
+    concentration: "Sabonete em Barra 4x80g",
+    short: "Kit com 4 sabonetes de fragrância frutada e vibrante.",
     description:
-      "O gourmand queridinho do Brasil: framboesa suculenta, marshmallow cremoso e baunilha. Divertido, jovem e viciante — impossível não ganhar elogio.",
-    notes: {
-      topo: ["Framboesa", "Mandarina"],
-      coracao: ["Marshmallow", "Flor de laranjeira"],
-      fundo: ["Baunilha", "Almíscar"],
-    },
-    featured: true,
-    art: { from: "#f29bbd", to: "#c23a76", shape: "round", bg: "#fdeef4" },
+      "Limpeza suave com o perfume envolvente de frutas vermelhas da linha Instance. Kit com 4 barras de 80g — espuma cremosa e cheiro que fica na pele.",
+    notes: { topo: ["Frutas vermelhas"], coracao: [], fundo: [] },
+    stock: 1,
+    art: { from: "#e06a7a", to: "#a02a3c", shape: "square", bg: "#fbeced" },
   },
   {
-    slug: "floratta-blue",
-    name: "Floratta Blue",
-    brand: "O Boticário",
-    category: "feminino",
-    price: 14690,
-    ml: 75,
-    concentration: "Desodorante Colônia",
-    short: "Floral frutado delicado com maçã e rosas.",
+    // cód. 85.395
+    slug: "instance-sabonete-ameixa-praline",
+    name: "Instance Sabonete em Barra — Ameixa e Praliné",
+    brand: "Eudora",
+    category: "unissex",
+    price: 2639,
+    ml: 0,
+    concentration: "Sabonete em Barra 4x80g",
+    short: "Kit com 4 sabonetes doces e aveludados.",
     description:
-      "Romântica e leve: a doçura da maçã com um buquê floral suave. A cara de um dia bonito — para usar sem ocasião especial.",
-    notes: {
-      topo: ["Maçã", "Pera"],
-      coracao: ["Rosa", "Violeta"],
-      fundo: ["Almíscar", "Madeiras claras"],
-    },
-    art: { from: "#9db8e8", to: "#3f5fb0", shape: "classic", bg: "#edf1fa" },
-  },
-  {
-    slug: "coffee-woman-seduction",
-    name: "Coffee Woman Seduction",
-    brand: "O Boticário",
-    category: "feminino",
-    price: 17990,
-    ml: 100,
-    concentration: "Desodorante Colônia",
-    short: "Sedução em forma de café com frutas vermelhas.",
-    description:
-      "Para a noite: o acorde de café característico da linha Coffee envolvido em frutas vermelhas, flores brancas e baunilha. Rastro marcante e sensual.",
-    notes: {
-      topo: ["Frutas vermelhas", "Bergamota"],
-      coracao: ["Café", "Flores brancas"],
-      fundo: ["Baunilha", "Âmbar"],
-    },
-    art: { from: "#c08a5a", to: "#4e2a16", shape: "square", bg: "#f5ede6" },
-  },
-  {
-    slug: "liz-eau-de-parfum",
-    name: "Liz",
-    brand: "O Boticário",
-    category: "feminino",
-    price: 27990,
-    ml: 75,
-    concentration: "Eau de Parfum",
-    short: "Elegância luminosa em um floral frutado.",
-    description:
-      "Radiante como quem sorri ao entrar: pêssego e cítricos na abertura, jasmim e rosa no coração, almíscar aconchegante no fundo. Um clássico moderno.",
-    notes: {
-      topo: ["Pêssego", "Cítricos"],
-      coracao: ["Jasmim", "Rosa"],
-      fundo: ["Almíscar", "Cedro"],
-    },
-    art: { from: "#f2b8a0", to: "#cc6a48", shape: "tall", bg: "#fbeee8" },
-  },
-  {
-    slug: "glamour-secrets-black",
-    name: "Glamour Secrets Black",
-    brand: "O Boticário",
-    category: "feminino",
-    price: 16990,
-    ml: 75,
-    concentration: "Desodorante Colônia",
-    short: "Misteriosa: cereja, rosas e baunilha negra.",
-    description:
-      "O lado intenso da linha Glamour: frutas vermelhas licorosas, buquê de rosas e um fundo cremoso de baunilha com patchouli. Para noites que pedem presença.",
-    notes: {
-      topo: ["Cereja", "Framboesa"],
-      coracao: ["Rosa", "Peônia"],
-      fundo: ["Baunilha", "Patchouli"],
-    },
-    art: { from: "#c25a8f", to: "#281526", shape: "classic", bg: "#f5ecf2" },
+      "A combinação adocicada de ameixa com praliné da linha Instance em 4 barras de 80g. Banho perfumado com sensação de spa.",
+    notes: { topo: ["Ameixa", "Praliné"], coracao: [], fundo: [] },
+    stock: 1,
+    art: { from: "#b07ac2", to: "#5e2a70", shape: "square", bg: "#f4ecf7" },
   },
 ];
