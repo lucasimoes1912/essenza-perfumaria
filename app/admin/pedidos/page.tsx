@@ -42,6 +42,8 @@ export default async function AdminPedidos() {
                 <th className="p-4">Data</th>
                 <th className="p-4">Itens</th>
                 <th className="p-4">Total</th>
+                <th className="p-4">Frete</th>
+                <th className="p-4">Entrega</th>
                 <th className="p-4">Comprador</th>
                 <th className="p-4">Revendedor</th>
                 <th className="p-4">Status</th>
@@ -67,6 +69,27 @@ export default async function AdminPedidos() {
                     </ul>
                   </td>
                   <td className="p-4 font-semibold">{formatPrice(o.total)}</td>
+                  <td className="p-4 whitespace-nowrap">
+                    {o.shipping === 0 ? "Grátis" : formatPrice(o.shipping)}
+                  </td>
+                  <td className="p-4">
+                    {o.address ? (
+                      <div className="min-w-[180px] space-y-0.5">
+                        <p className="font-semibold">{o.address.name}</p>
+                        <p>{o.address.phone}</p>
+                        <p>
+                          {o.address.street}, {o.address.number}
+                          {o.address.complement && ` — ${o.address.complement}`}
+                        </p>
+                        <p>
+                          {o.address.neighborhood} · {o.address.city}/{o.address.state}
+                        </p>
+                        <p>CEP {o.address.cep}</p>
+                      </div>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="p-4">{o.payerEmail ?? "—"}</td>
                   <td className="p-4">{o.resellerName ?? "—"}</td>
                   <td className="p-4">

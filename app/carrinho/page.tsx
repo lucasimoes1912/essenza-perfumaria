@@ -5,11 +5,66 @@ import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 import { formatPrice, store } from "@/lib/config";
 import BottleArt from "@/components/BottleArt";
+import type { Address } from "@/lib/types";
+
+const EMPTY_ADDRESS: Address = {
+  name: "",
+  phone: "",
+  cep: "",
+  street: "",
+  number: "",
+  complement: "",
+  neighborhood: "",
+  city: "",
+  state: "",
+};
+
+const REQUIRED_FIELDS: (keyof Address)[] = [
+  "name",
+  "phone",
+  "cep",
+  "street",
+  "number",
+  "neighborhood",
+  "city",
+  "state",
+];
 
 export default function CarrinhoPage() {
   const { items, setQty, remove, total, count } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [cepLoading, setCepLoading] = useState(false);
+
+  function updateAddress<K extends keyof Address>(field: K, value: Address[K]) {
+    setAddress((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleCepBlur() {
+    const cep = address.cep.replace(/\D/g, "");
+    if (cep.length !== 8) return;
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setAddress((prev) => ({
+          ...prev,
+          street: data.logradouro || prev.street,
+          neighborhood: data.bairro || prev.neighborhood,
+          city: data.localidade || prev.city,
+          state: data.uf || prev.state,
+        }));
+      }
+    } catch {
+      /* autofill é só conveniência — cliente pode preencher na mão */
+    } finally {
+      setCepLoading(false);
+    }
+  }
+
+  const addressComplete = REQUIRED_FIELDS.every((f) => address[f].trim() !== "");
 
   async function checkout() {
     setLoading(true);
@@ -20,6 +75,7 @@ export default function CarrinhoPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
+          address,
         }),
       });
       const data = await res.json();
@@ -50,12 +106,17 @@ export default function CarrinhoPage() {
   }
 
   const missingForFreeShipping = store.freeShippingMin - total;
+  const shipping = missingForFreeShipping <= 0 ? 0 : store.flatShippingFee;
+  const grandTotal = total + shipping;
+  const inputClass =
+    "mt-1 w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-gold";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="font-serif text-3xl font-semibold sm:text-4xl">Sua sacola</h1>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-6">
         <ul className="space-y-4">
           {items.map((item) => (
             <li
@@ -119,6 +180,92 @@ export default function CarrinhoPage() {
           ))}
         </ul>
 
+        <div className="rounded-2xl border border-line bg-white p-6">
+          <h2 className="font-serif text-xl font-semibold">Endereço de entrega</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-medium sm:col-span-2">
+              Nome completo
+              <input
+                value={address.name}
+                onChange={(e) => updateAddress("name", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Telefone / WhatsApp
+              <input
+                value={address.phone}
+                onChange={(e) => updateAddress("phone", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              CEP
+              <input
+                value={address.cep}
+                onChange={(e) => updateAddress("cep", e.target.value)}
+                onBlur={handleCepBlur}
+                placeholder="00000-000"
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium sm:col-span-2">
+              Rua
+              <input
+                value={address.street}
+                onChange={(e) => updateAddress("street", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Número
+              <input
+                value={address.number}
+                onChange={(e) => updateAddress("number", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Complemento
+              <input
+                value={address.complement}
+                onChange={(e) => updateAddress("complement", e.target.value)}
+                placeholder="opcional"
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Bairro
+              <input
+                value={address.neighborhood}
+                onChange={(e) => updateAddress("neighborhood", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Cidade
+              <input
+                value={address.city}
+                onChange={(e) => updateAddress("city", e.target.value)}
+                className={inputClass}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              UF
+              <input
+                value={address.state}
+                onChange={(e) => updateAddress("state", e.target.value.toUpperCase())}
+                maxLength={2}
+                className={inputClass}
+              />
+            </label>
+          </div>
+          {cepLoading && (
+            <p className="mt-3 text-xs text-stone-warm">Buscando endereço pelo CEP…</p>
+          )}
+        </div>
+        </div>
+
         <aside className="h-fit rounded-2xl border border-line bg-white p-6">
           <h2 className="font-serif text-xl font-semibold">Resumo</h2>
           <dl className="mt-4 space-y-2 text-sm">
@@ -129,10 +276,10 @@ export default function CarrinhoPage() {
             <div className="flex justify-between">
               <dt className="text-stone-warm">Frete</dt>
               <dd className="font-semibold">
-                {missingForFreeShipping <= 0 ? (
+                {shipping === 0 ? (
                   <span className="text-green-600">Grátis 🎉</span>
                 ) : (
-                  "calculado na entrega"
+                  formatPrice(shipping)
                 )}
               </dd>
             </div>
@@ -147,17 +294,22 @@ export default function CarrinhoPage() {
 
           <div className="mt-4 flex justify-between border-t border-line pt-4">
             <span className="font-semibold">Total</span>
-            <span className="text-xl font-bold">{formatPrice(total)}</span>
+            <span className="text-xl font-bold">{formatPrice(grandTotal)}</span>
           </div>
 
           <button
             type="button"
             onClick={checkout}
-            disabled={loading}
+            disabled={loading || !addressComplete}
             className="mt-6 w-full rounded-full bg-ink py-3.5 text-sm font-semibold text-white transition hover:bg-gold disabled:opacity-60"
           >
             {loading ? "Redirecionando…" : "Pagar com Mercado Pago"}
           </button>
+          {!addressComplete && (
+            <p className="mt-3 text-center text-xs text-stone-warm">
+              Preencha o endereço de entrega para continuar.
+            </p>
+          )}
           <p className="mt-3 text-center text-xs text-stone-warm">
             Pix, cartão de crédito ou boleto · ambiente seguro
           </p>

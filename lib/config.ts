@@ -11,6 +11,7 @@ export const store = {
   email: "contato@essenza.com.br",
   instagram: "@essenzaperfumaria",
   freeShippingMin: 29900, // frete grátis acima de R$ 299 (em centavos)
+  flatShippingFee: 1990, // frete fixo abaixo disso: R$ 19,90 (em centavos)
 };
 
 export function formatPrice(cents: number): string {
