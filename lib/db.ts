@@ -71,6 +71,12 @@ async function bootstrap(): Promise<void> {
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS
       reseller_id INTEGER REFERENCES resellers(id) ON DELETE SET NULL;
 
+    -- Frete fixo + endereço de entrega, coletados no carrinho.
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS
+      shipping INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS
+      address JSONB;
+
     -- Estoque: default 10 para os produtos existentes até a lista real
     -- ser importada; depois o admin mantém as quantidades.
     ALTER TABLE products ADD COLUMN IF NOT EXISTS

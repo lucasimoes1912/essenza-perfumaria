@@ -44,10 +44,26 @@ export interface CartItem {
   qty: number;
 }
 
+export interface Address {
+  name: string;
+  phone: string;
+  cep: string;
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  /** UF, 2 letras */
+  state: string;
+}
+
 export interface Order {
   id: number;
   status: string;
   total: number;
+  /** frete em centavos */
+  shipping: number;
+  address: Address | null;
   items: { slug: string; name: string; qty: number; unitPrice: number }[];
   mpPaymentId: string | null;
   mpPreferenceId: string | null;
