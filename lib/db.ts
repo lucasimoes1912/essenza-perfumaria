@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { seedProducts } from "./seed-products";
+import { REGIONS } from "./shipping-regions";
 
 // Pool e bootstrap são guardados em globalThis para sobreviver ao
 // hot-reload do Next em desenvolvimento sem abrir conexões novas.
@@ -71,11 +72,19 @@ async function bootstrap(): Promise<void> {
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS
       reseller_id INTEGER REFERENCES resellers(id) ON DELETE SET NULL;
 
-    -- Frete fixo + endereço de entrega, coletados no carrinho.
+    -- Frete + endereço de entrega, coletados no carrinho.
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS
       shipping INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE orders ADD COLUMN IF NOT EXISTS
       address JSONB;
+    ALTER TABLE orders ADD COLUMN IF NOT EXISTS
+      delivery_method TEXT NOT NULL DEFAULT 'entrega';
+
+    -- Tabela de frete por UF, editável em /admin/frete.
+    CREATE TABLE IF NOT EXISTS shipping_rates (
+      uf    TEXT PRIMARY KEY,
+      price INTEGER NOT NULL
+    );
 
     -- Estoque: default 10 para os produtos existentes até a lista real
     -- ser importada; depois o admin mantém as quantidades.
@@ -101,6 +110,18 @@ async function bootstrap(): Promise<void> {
       );
     }
     console.log(`[db] catálogo inicial criado com ${seedProducts.length} produtos`);
+  }
+
+  // Semeia a tabela de frete com os padrões regionais (não sobrescreve
+  // valores que o admin já tenha editado).
+  for (const region of REGIONS) {
+    for (const uf of region.ufs) {
+      await pool.query(
+        `INSERT INTO shipping_rates (uf, price) VALUES ($1, $2)
+         ON CONFLICT (uf) DO NOTHING`,
+        [uf, region.defaultPrice]
+      );
+    }
   }
 }
 

@@ -57,12 +57,15 @@ export interface Address {
   state: string;
 }
 
+export type DeliveryMethod = "entrega" | "retirada";
+
 export interface Order {
   id: number;
   status: string;
   total: number;
   /** frete em centavos */
   shipping: number;
+  deliveryMethod: DeliveryMethod;
   address: Address | null;
   items: { slug: string; name: string; qty: number; unitPrice: number }[];
   mpPaymentId: string | null;

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 import { formatPrice, store } from "@/lib/config";
 import BottleArt from "@/components/BottleArt";
-import type { Address } from "@/lib/types";
+import type { Address, DeliveryMethod } from "@/lib/types";
 
 const EMPTY_ADDRESS: Address = {
   name: "",
@@ -36,6 +36,29 @@ export default function CarrinhoPage() {
   const [error, setError] = useState<string | null>(null);
   const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
   const [cepLoading, setCepLoading] = useState(false);
+  const [method, setMethod] = useState<DeliveryMethod>("entrega");
+  /** frete cotado para a UF informada (centavos); null = ainda não sabemos */
+  const [rate, setRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    const uf = address.state.trim().toUpperCase();
+    if (method !== "entrega" || uf.length !== 2) {
+      setRate(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/frete?uf=${uf}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setRate(d ? d.price : null);
+      })
+      .catch(() => {
+        if (!cancelled) setRate(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [address.state, method]);
 
   function updateAddress<K extends keyof Address>(field: K, value: Address[K]) {
     setAddress((prev) => ({ ...prev, [field]: value }));
@@ -64,7 +87,10 @@ export default function CarrinhoPage() {
     }
   }
 
-  const addressComplete = REQUIRED_FIELDS.every((f) => address[f].trim() !== "");
+  const addressComplete =
+    method === "retirada"
+      ? address.name.trim() !== "" && address.phone.trim() !== ""
+      : REQUIRED_FIELDS.every((f) => address[f].trim() !== "");
 
   async function checkout() {
     setLoading(true);
@@ -76,6 +102,7 @@ export default function CarrinhoPage() {
         body: JSON.stringify({
           items: items.map((i) => ({ slug: i.slug, qty: i.qty })),
           address,
+          method,
         }),
       });
       const data = await res.json();
@@ -106,8 +133,13 @@ export default function CarrinhoPage() {
   }
 
   const missingForFreeShipping = store.freeShippingMin - total;
-  const shipping = missingForFreeShipping <= 0 ? 0 : store.flatShippingFee;
-  const grandTotal = total + shipping;
+  const freeShipping = missingForFreeShipping <= 0;
+  /** null = frete ainda desconhecido (falta a UF) */
+  const shipping: number | null =
+    method === "retirada" || freeShipping ? 0 : rate;
+  const grandTotal = total + (shipping ?? 0);
+  const canPay =
+    addressComplete && (method === "retirada" || freeShipping || shipping !== null);
   const inputClass =
     "mt-1 w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-gold";
 
@@ -177,7 +209,40 @@ export default function CarrinhoPage() {
         </ul>
 
         <div className="rounded-[20px] border border-line bg-white p-6">
-          <h2 className="mb-4 font-serif text-lg font-bold">Endereço de entrega</h2>
+          <h2 className="mb-4 font-serif text-lg font-bold">Como você quer receber?</h2>
+
+          <div className="mb-5 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setMethod("entrega")}
+              className={`rounded-2xl border p-4 text-left transition ${
+                method === "entrega"
+                  ? "border-gold bg-sand"
+                  : "border-line hover:border-gold"
+              }`}
+            >
+              <p className="font-semibold">🚚 Receber em casa</p>
+              <p className="mt-0.5 text-xs text-stone-warm">
+                Frete calculado pelo seu estado · grátis acima de{" "}
+                {formatPrice(store.freeShippingMin)}
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMethod("retirada")}
+              className={`rounded-2xl border p-4 text-left transition ${
+                method === "retirada"
+                  ? "border-gold bg-sand"
+                  : "border-line hover:border-gold"
+              }`}
+            >
+              <p className="font-semibold">🤝 Retirar em mãos</p>
+              <p className="mt-0.5 text-xs text-stone-warm">
+                Sem frete · combinamos local e horário pelo WhatsApp
+              </p>
+            </button>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-sm font-medium sm:col-span-2">
               Nome completo
@@ -195,6 +260,7 @@ export default function CarrinhoPage() {
                 className={inputClass}
               />
             </label>
+            {method === "entrega" && (<>
             <label className="block text-sm font-medium">
               CEP
               <input
@@ -255,9 +321,16 @@ export default function CarrinhoPage() {
                 className={inputClass}
               />
             </label>
+            </>)}
           </div>
-          {cepLoading && (
+          {method === "entrega" && cepLoading && (
             <p className="mt-3 text-xs text-stone-warm">Buscando endereço pelo CEP…</p>
+          )}
+          {method === "retirada" && (
+            <p className="mt-4 rounded-lg bg-sand p-3 text-xs text-stone-warm">
+              Após o pagamento, entraremos em contato pelo telefone informado
+              para combinar o local e o horário da retirada.
+            </p>
           )}
         </div>
         </div>
@@ -270,14 +343,26 @@ export default function CarrinhoPage() {
               <dd className="font-semibold">{formatPrice(total)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-stone-warm">Frete</dt>
+              <dt className="text-stone-warm">
+                Frete{method === "entrega" && address.state.trim().length === 2 && (
+                  <> ({address.state.trim().toUpperCase()})</>
+                )}
+              </dt>
               <dd className="font-semibold">
-                {shipping === 0 ? "Grátis" : formatPrice(shipping)}
+                {method === "retirada" ? (
+                  <span className="text-green-600">Grátis (retirada)</span>
+                ) : shipping === 0 ? (
+                  "Grátis"
+                ) : shipping === null ? (
+                  <span className="text-stone-warm">informe o CEP</span>
+                ) : (
+                  formatPrice(shipping)
+                )}
               </dd>
             </div>
           </dl>
 
-          {missingForFreeShipping > 0 && (
+          {method === "entrega" && missingForFreeShipping > 0 && (
             <p className="mt-3 rounded-lg bg-white p-3 text-xs text-stone-warm">
               Faltam <strong>{formatPrice(missingForFreeShipping)}</strong> para
               ganhar frete grátis!
@@ -292,14 +377,16 @@ export default function CarrinhoPage() {
           <button
             type="button"
             onClick={checkout}
-            disabled={loading || !addressComplete}
+            disabled={loading || !canPay}
             className="mt-6 w-full rounded-full bg-ink py-4 font-serif text-[15px] font-bold text-white transition hover:bg-gold disabled:opacity-60"
           >
             {loading ? "Redirecionando…" : "Pagar com Mercado Pago"}
           </button>
-          {!addressComplete && (
+          {!canPay && (
             <p className="mt-3 text-center text-xs text-stone-warm">
-              Preencha o endereço de entrega para continuar.
+              {method === "retirada"
+                ? "Informe seu nome e telefone para continuar."
+                : "Preencha o endereço de entrega para continuar."}
             </p>
           )}
           <p className="mt-3 text-center text-xs text-stone-warm">

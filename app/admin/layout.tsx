@@ -37,6 +37,12 @@ export default async function AdminLayout({
             Revendedores
           </Link>
           <Link
+            href="/admin/frete"
+            className="rounded-full px-4 py-1.5 font-medium text-stone-warm transition hover:bg-sand hover:text-ink"
+          >
+            Frete
+          </Link>
+          <Link
             href="/"
             className="rounded-full px-4 py-1.5 font-medium text-stone-warm transition hover:bg-sand hover:text-ink"
           >

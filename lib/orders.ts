@@ -1,11 +1,12 @@
 import { q } from "./db";
-import type { Address, Order } from "./types";
+import type { Address, DeliveryMethod, Order } from "./types";
 
 interface OrderRow {
   id: number;
   status: string;
   total: number;
   shipping: number;
+  delivery_method: DeliveryMethod;
   address: Address | null;
   items: Order["items"];
   mp_preference_id: string | null;
@@ -23,6 +24,7 @@ function toOrder(r: OrderRow): Order {
     status: r.status,
     total: r.total,
     shipping: r.shipping,
+    deliveryMethod: r.delivery_method,
     address: r.address,
     items: r.items,
     mpPreferenceId: r.mp_preference_id,
@@ -39,13 +41,18 @@ export async function createOrder(
   items: Order["items"],
   total: number,
   shipping: number,
+  deliveryMethod: DeliveryMethod,
   address: Address,
   resellerId: number | null = null
 ): Promise<number> {
   const rows = await q<{ id: number }>(
-    `INSERT INTO orders (status, total, shipping, address, items, reseller_id)
-     VALUES ('aberto', $1, $2, $3, $4, $5) RETURNING id`,
-    [total, shipping, JSON.stringify(address), JSON.stringify(items), resellerId]
+    `INSERT INTO orders
+       (status, total, shipping, delivery_method, address, items, reseller_id)
+     VALUES ('aberto', $1, $2, $3, $4, $5, $6) RETURNING id`,
+    [
+      total, shipping, deliveryMethod, JSON.stringify(address),
+      JSON.stringify(items), resellerId,
+    ]
   );
   return rows[0].id;
 }

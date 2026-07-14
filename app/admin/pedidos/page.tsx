@@ -73,7 +73,19 @@ export default async function AdminPedidos() {
                     {o.shipping === 0 ? "Grátis" : formatPrice(o.shipping)}
                   </td>
                   <td className="p-4">
-                    {o.address ? (
+                    {o.deliveryMethod === "retirada" ? (
+                      <div className="min-w-[180px] space-y-0.5">
+                        <span className="inline-block rounded-full bg-sand px-2.5 py-1 text-xs font-semibold">
+                          🤝 Retirada em mãos
+                        </span>
+                        {o.address && (
+                          <>
+                            <p className="font-semibold">{o.address.name}</p>
+                            <p>{o.address.phone}</p>
+                          </>
+                        )}
+                      </div>
+                    ) : o.address ? (
                       <div className="min-w-[180px] space-y-0.5">
                         <p className="font-semibold">{o.address.name}</p>
                         <p>{o.address.phone}</p>

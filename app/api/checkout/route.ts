@@ -6,11 +6,13 @@ import { createOrder, setOrderPreference } from "@/lib/orders";
 import { getActiveResellerByCode } from "@/lib/resellers";
 import { REF_COOKIE } from "@/lib/reseller-auth";
 import { store } from "@/lib/config";
-import type { Address } from "@/lib/types";
+import { getShippingRate } from "@/lib/shipping";
+import type { Address, DeliveryMethod } from "@/lib/types";
 
 interface CheckoutBody {
   items: { slug: string; qty: number }[];
   address: Address;
+  method?: DeliveryMethod;
 }
 
 const REQUIRED_ADDRESS_FIELDS: (keyof Address)[] = [
@@ -24,7 +26,7 @@ const REQUIRED_ADDRESS_FIELDS: (keyof Address)[] = [
   "state",
 ];
 
-function parseAddress(raw: unknown): Address | null {
+function parseAddress(raw: unknown, method: DeliveryMethod): Address | null {
   if (!raw || typeof raw !== "object") return null;
   const a = raw as Record<string, unknown>;
   const address = {
@@ -38,6 +40,10 @@ function parseAddress(raw: unknown): Address | null {
     city: String(a.city ?? "").trim(),
     state: String(a.state ?? "").trim().toUpperCase(),
   };
+  // Retirada em mãos: basta saber quem é e como contatar.
+  if (method === "retirada") {
+    return address.name && address.phone ? address : null;
+  }
   if (address.cep.length !== 8) return null;
   if (REQUIRED_ADDRESS_FIELDS.some((f) => !address[f])) return null;
   return address;
@@ -66,10 +72,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Carrinho vazio" }, { status: 400 });
   }
 
-  const address = parseAddress(body.address);
+  const method: DeliveryMethod =
+    body.method === "retirada" ? "retirada" : "entrega";
+
+  const address = parseAddress(body.address, method);
   if (!address) {
     return NextResponse.json(
-      { error: "Preencha o endereço de entrega completo antes de pagar." },
+      {
+        error:
+          method === "retirada"
+            ? "Informe seu nome e telefone para combinar a retirada."
+            : "Preencha o endereço de entrega completo antes de pagar.",
+      },
       { status: 400 }
     );
   }
@@ -109,7 +123,11 @@ export async function POST(req: Request) {
   }
 
   const subtotal = orderItems.reduce((n, i) => n + i.unitPrice * i.qty, 0);
-  const shipping = subtotal >= store.freeShippingMin ? 0 : store.flatShippingFee;
+  // Retirada em mãos: sem frete. Entrega: tabela por UF (grátis acima do mínimo).
+  const shipping =
+    method === "retirada" || subtotal >= store.freeShippingMin
+      ? 0
+      : await getShippingRate(address.state);
   const total = subtotal + shipping;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -125,7 +143,9 @@ export async function POST(req: Request) {
   try {
     // Registra o pedido antes de ir ao Mercado Pago; o webhook atualiza o
     // status usando o external_reference.
-    const orderId = await createOrder(orderItems, total, shipping, address, resellerId);
+    const orderId = await createOrder(
+      orderItems, total, shipping, method, address, resellerId
+    );
 
     const mp = new MercadoPagoConfig({ accessToken: token });
     const preference = await new Preference(mp).create({
