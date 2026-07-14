@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProduct, getProducts } from "@/lib/catalog";
@@ -33,24 +34,31 @@ export default async function ProdutoPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="grid gap-10 md:grid-cols-2">
+      <Link
+        href="/produtos"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-stone-warm hover:text-ink"
+      >
+        ← Voltar ao catálogo
+      </Link>
+
+      <div className="grid gap-14 md:grid-cols-2">
         <div
-          className="flex items-center justify-center rounded-3xl border border-line p-10"
+          className="flex aspect-square items-center justify-center rounded-[20px]"
           style={{ backgroundColor: product.art.bg }}
         >
-          <BottleArt art={product.art} className="h-80 max-w-full" />
+          <BottleArt art={product.art} className="h-[70%] max-w-full" />
         </div>
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">
+        <div className="pt-2">
+          <p className="text-[13px] font-bold uppercase tracking-[0.05em] text-gold">
             {product.category} · {product.concentration}
             {product.ml > 0 && <> · {product.ml} ml</>}
           </p>
-          <h1 className="mt-3 font-serif text-4xl font-semibold">{product.name}</h1>
-          <p className="mt-1 text-sm text-stone-warm">por {product.brand}</p>
+          <h1 className="mt-2.5 font-serif text-[32px] font-extrabold tracking-tight">{product.name}</h1>
+          <p className="mt-1 text-[15px] text-stone-warm">por {product.brand}</p>
 
           <div className="mt-6 flex items-baseline gap-3">
-            <span className="text-3xl font-semibold">{formatPrice(product.price)}</span>
+            <span className="font-serif text-[30px] font-extrabold">{formatPrice(product.price)}</span>
             {product.compareAt && (
               <span className="text-lg text-stone-warm line-through">
                 {formatPrice(product.compareAt)}

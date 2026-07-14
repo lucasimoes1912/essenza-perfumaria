@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { BottleArt as Art } from "@/lib/types";
 
 /**
@@ -11,7 +12,10 @@ export default function BottleArt({
   art: Art;
   className?: string;
 }) {
-  const gid = `g-${art.from.slice(1)}-${art.to.slice(1)}-${art.shape}`;
+  // useId evita colisão de gradientId quando o mesmo produto aparece
+  // mais de uma vez na página (ex: hero + grid de destaques).
+  const uid = useId();
+  const gid = `g${uid.replace(/:/g, "")}`;
   return (
     <svg
       viewBox="0 0 200 260"

@@ -53,75 +53,71 @@ export default function CarrinhoPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="font-serif text-3xl font-semibold sm:text-4xl">Sua sacola</h1>
+      <h1 className="font-serif text-[34px] font-extrabold tracking-tight">Carrinho</h1>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_360px]">
-        <ul className="space-y-4">
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+        <ul className="flex flex-col gap-4">
           {items.map((item) => (
             <li
               key={item.slug}
-              className="flex gap-4 rounded-2xl border border-line bg-white p-4"
+              className="grid grid-cols-[80px_1fr_auto] items-center gap-4 rounded-2xl border border-line bg-white p-3.5"
             >
               <Link
                 href={`/produtos/${item.slug}`}
-                className="flex h-28 w-24 shrink-0 items-center justify-center rounded-xl"
+                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[10px]"
                 style={{ backgroundColor: item.art.bg }}
               >
-                <BottleArt art={item.art} className="h-20" />
+                <BottleArt art={item.art} className="h-14" />
               </Link>
-              <div className="flex flex-1 flex-col">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <Link
-                      href={`/produtos/${item.slug}`}
-                      className="font-serif text-lg font-semibold hover:text-gold"
-                    >
-                      {item.name}
-                    </Link>
-                    <p className="text-xs text-stone-warm">
-                      {item.concentration}
-                      {item.ml > 0 && <> · {item.ml} ml</>}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => remove(item.slug)}
-                    className="text-sm text-stone-warm hover:text-red-500"
-                    aria-label={`Remover ${item.name}`}
-                  >
-                    Remover
-                  </button>
-                </div>
-                <div className="mt-auto flex items-center justify-between">
+              <div>
+                <Link
+                  href={`/produtos/${item.slug}`}
+                  className="font-serif text-[15px] font-semibold hover:text-gold"
+                >
+                  {item.name}
+                </Link>
+                <p className="mb-2 text-[13px] text-stone-warm">
+                  {item.concentration}
+                  {item.ml > 0 && <> · {item.ml} ml</>}
+                </p>
+                <div className="flex items-center gap-2.5">
                   <div className="flex items-center rounded-full border border-line">
                     <button
                       type="button"
                       onClick={() => setQty(item.slug, item.qty - 1)}
-                      className="px-3 py-1.5 text-stone-warm hover:text-ink"
+                      className="flex h-[30px] w-[30px] items-center justify-center font-semibold text-ink"
                       aria-label="Diminuir"
                     >
                       −
                     </button>
-                    <span className="w-7 text-center text-sm font-semibold">{item.qty}</span>
+                    <span className="w-[26px] text-center text-[13px] font-bold">{item.qty}</span>
                     <button
                       type="button"
                       onClick={() => setQty(item.slug, item.qty + 1)}
-                      className="px-3 py-1.5 text-stone-warm hover:text-ink"
+                      className="flex h-[30px] w-[30px] items-center justify-center font-semibold text-ink"
                       aria-label="Aumentar"
                     >
                       +
                     </button>
                   </div>
-                  <p className="font-semibold">{formatPrice(item.price * item.qty)}</p>
+                  <button
+                    type="button"
+                    onClick={() => remove(item.slug)}
+                    className="text-[13px] font-semibold text-gold hover:text-gold-dark"
+                    aria-label={`Remover ${item.name}`}
+                  >
+                    Remover
+                  </button>
                 </div>
               </div>
+              <p className="font-bold">{formatPrice(item.price * item.qty)}</p>
             </li>
           ))}
         </ul>
 
-        <aside className="h-fit rounded-2xl border border-line bg-white p-6">
-          <h2 className="font-serif text-xl font-semibold">Resumo</h2>
-          <dl className="mt-4 space-y-2 text-sm">
+        <aside className="h-fit rounded-[20px] bg-sand p-7 lg:sticky lg:top-[100px]">
+          <h2 className="mb-5 font-serif text-lg font-bold">Resumo do pedido</h2>
+          <dl className="space-y-2.5 text-sm">
             <div className="flex justify-between">
               <dt className="text-stone-warm">Subtotal ({count} itens)</dt>
               <dd className="font-semibold">{formatPrice(total)}</dd>
@@ -129,32 +125,28 @@ export default function CarrinhoPage() {
             <div className="flex justify-between">
               <dt className="text-stone-warm">Frete</dt>
               <dd className="font-semibold">
-                {missingForFreeShipping <= 0 ? (
-                  <span className="text-green-600">Grátis 🎉</span>
-                ) : (
-                  "calculado na entrega"
-                )}
+                {missingForFreeShipping <= 0 ? "Grátis" : "calculado na entrega"}
               </dd>
             </div>
           </dl>
 
           {missingForFreeShipping > 0 && (
-            <p className="mt-3 rounded-lg bg-sand p-3 text-xs text-stone-warm">
+            <p className="mt-3 rounded-lg bg-white p-3 text-xs text-stone-warm">
               Faltam <strong>{formatPrice(missingForFreeShipping)}</strong> para
               ganhar frete grátis!
             </p>
           )}
 
-          <div className="mt-4 flex justify-between border-t border-line pt-4">
-            <span className="font-semibold">Total</span>
-            <span className="text-xl font-bold">{formatPrice(total)}</span>
+          <div className="mt-4 flex justify-between border-t border-line pt-4 text-lg">
+            <span className="font-bold">Total</span>
+            <span className="font-extrabold">{formatPrice(total)}</span>
           </div>
 
           <button
             type="button"
             onClick={checkout}
             disabled={loading}
-            className="mt-6 w-full rounded-full bg-ink py-3.5 text-sm font-semibold text-white transition hover:bg-gold disabled:opacity-60"
+            className="mt-6 w-full rounded-full bg-ink py-4 font-serif text-[15px] font-bold text-white transition hover:bg-gold disabled:opacity-60"
           >
             {loading ? "Redirecionando…" : "Pagar com Mercado Pago"}
           </button>
