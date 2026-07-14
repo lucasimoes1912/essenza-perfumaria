@@ -126,17 +126,14 @@ export default async function Home() {
             <div className="text-center">
               <p className="text-2xl">🔒</p>
               <p className="mt-2 text-sm font-semibold">Pagamento seguro</p>
-              <p className="text-xs text-stone-warm">Pix e cartão</p>
             </div>
             <div className="text-center">
               <p className="text-2xl">✈️</p>
               <p className="mt-2 text-sm font-semibold">Envio nacional</p>
-              <p className="text-xs text-stone-warm">Até 24h úteis</p>
             </div>
             <div className="text-center">
               <p className="text-2xl">💎</p>
               <p className="mt-2 text-sm font-semibold">100% originais</p>
-              <p className="text-xs text-stone-warm">Direto do fabricante</p>
             </div>
           </div>
         </div>
