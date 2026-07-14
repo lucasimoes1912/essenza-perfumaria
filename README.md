@@ -20,17 +20,25 @@ E-commerce para **revenda de produtos O Boticário** (nome "Essenza" é provisó
 - **Estoque por quantidade**: badge "Últimas unidades" (≤3), "Esgotado" (0) com compra bloqueada, e seletor de quantidade limitado ao disponível
 - Frascos ilustrados em SVG ([components/BottleArt.tsx](components/BottleArt.tsx)) — cores/formato configuráveis por produto, até haver fotos reais
 
+### Entrega e frete
+- No carrinho, o cliente escolhe o método: **🚚 receber em casa** ou **🤝 retirar em mãos**
+- **Receber em casa**: endereço completo com preenchimento automático pelo CEP (ViaCEP) e **frete por estado** — tabela com as 27 UFs ([lib/shipping-regions.ts](lib/shipping-regions.ts) semeia por região: Sudeste R$ 15,90 → Norte R$ 28,90), cotada em tempo real via `/api/frete?uf=XX` e **editável em `/admin/frete`**
+- **Retirar em mãos**: sem frete; o formulário pede só nome e telefone, e o local/horário é combinado por WhatsApp após o pagamento
+- Frete **grátis** acima de `freeShippingMin` (hoje R$ 299, em [lib/config.ts](lib/config.ts)); `flatShippingFee` é apenas fallback para UF ausente da tabela
+- O frete exibido no carrinho é cortesia — **o servidor recalcula tudo no checkout** e grava frete, método (`delivery_method`) e endereço no pedido
+
 ### Checkout e pedidos
-- `/api/checkout` valida **tudo no servidor** (preço vem do banco, nunca do navegador; estoque conferido) e cria a preferência no Mercado Pago
-- Cada clique em "Pagar" registra um pedido (`orders`) com os itens congelados e `external_reference`
+- `/api/checkout` valida **tudo no servidor** (preço vem do banco, nunca do navegador; estoque conferido; frete recalculado pela UF ou zerado na retirada) e cria a preferência no Mercado Pago (o frete entra como item próprio)
+- Cada clique em "Pagar" registra um pedido (`orders`) com os itens congelados, frete, método de entrega, endereço e `external_reference`
 - `/api/webhook` recebe as notificações do MP, consulta o pagamento na API oficial e atualiza o status do pedido; **desconta o estoque apenas na primeira transição para "aprovado"** (notificações duplicadas não descontam duas vezes)
 - Páginas de retorno: sucesso, pendente e erro
 
 ### Painel do lojista — `/admin`
 - Login por senha única (`ADMIN_PASSWORD`), sessão expira em **12 horas**
 - **Produtos**: CRUD completo — nome, slug, marca, categoria, preços (venda + "de" riscado), estoque, descrição, notas olfativas, cores/formato do frasco, destaque na home, ativar/desativar
-- **Pedidos**: lista com itens, comprador, revendedor responsável e status traduzido
+- **Pedidos**: lista com itens, frete, endereço de entrega (ou badge de retirada em mãos + telefone), comprador, revendedor responsável e status traduzido
 - **Revendedores**: cadastrar/editar/desativar contas, ver vendas pagas e total vendido por pessoa
+- **Frete**: tabela de valores por UF, agrupada por região, salva direto no banco (sem deploy)
 - **Visão geral**: contagens e faturamento dos pedidos pagos
 
 ### Área do revendedor — `/revendedor`
@@ -67,7 +75,7 @@ O projeto está no ar num projeto Railway com dois serviços: o app (este reposi
 
 ## Dados e catálogo
 
-- O schema (products, orders, resellers) e o catálogo inicial são criados automaticamente no primeiro acesso quando a tabela está vazia — a semente é [lib/seed-products.ts](lib/seed-products.ts), hoje com os **8 itens reais** do estoque (importados da lista do fornecedor em 09/07/2026, **a preço de custo** — defina os preços de venda no admin!)
+- O schema (products, orders, resellers, shipping_rates) e o catálogo inicial são criados automaticamente no primeiro acesso quando a tabela está vazia — a semente é [lib/seed-products.ts](lib/seed-products.ts), hoje com os **8 itens reais** do estoque (importados da lista do fornecedor em 09/07/2026, **a preço de custo** — defina os preços de venda no admin!)
 - No dia a dia, o estoque é mantido pelo painel `/admin` (chegou reposição → editar produto → somar unidades); não há sincronização com planilha externa por decisão de projeto
 - Preços são armazenados em **centavos** (ex.: R$ 127,41 = `12741`)
 
@@ -77,18 +85,20 @@ O projeto está no ar num projeto Railway com dois serviços: o app (este reposi
 app/
   page.tsx                    # home (hero, destaques, categorias)
   produtos/                   # catálogo + página de produto (banco)
-  carrinho/                   # sacola + botão de pagamento
+  carrinho/                   # sacola, entrega×retirada, endereço e pagamento
   checkout/{sucesso,erro,pendente}/  # retorno do Mercado Pago
-  api/checkout/               # valida carrinho, cria pedido e preferência MP
+  api/checkout/               # valida carrinho+frete, cria pedido e preferência MP
+  api/frete/                  # cotação de frete por UF (usada pelo carrinho)
   api/webhook/                # notificações MP → status + baixa de estoque
-  admin/                      # painel do lojista (produtos, pedidos, revendedores)
+  admin/                      # painel do lojista (produtos, pedidos, revendedores, frete)
   revendedor/                 # login e painel do revendedor
 components/                   # Header, Footer, cards, carrinho, formulários admin
 lib/
-  config.ts                   # nome da marca, contato, frete grátis
+  config.ts                   # nome da marca, contato, frete grátis/fallback
   types.ts                    # tipos compartilhados
   db.ts                       # pool pg + schema + seed automáticos
   catalog.ts / orders.ts / resellers.ts  # acesso a dados
+  shipping.ts / shipping-regions.ts      # tabela de frete por UF
   admin-auth.ts / reseller-auth.ts       # sessões assinadas com expiração
   seed-products.ts            # catálogo-semente (lista real do estoque)
 middleware.ts                 # captura ?rev=codigo → cookie de atribuição
@@ -101,3 +111,5 @@ Dockerfile                    # build determinístico p/ Railway
 2. Nome definitivo da marca (trocar em [lib/config.ts](lib/config.ts))
 3. Fotos reais dos produtos (substituir os SVGs)
 4. Preços de venda (importados a custo — margem zero até ajustar no admin)
+5. Valores da tabela de frete são estimativas por região — ajustar em `/admin/frete` conforme a cidade de origem
+6. Evolução futura de frete: integração SuperFrete/Melhor Envio (cotação real dos Correios + etiqueta com desconto; exigirá peso/dimensões por produto)
