@@ -6,9 +6,9 @@ export const metadata: Metadata = { title: "Pagamento não concluído" };
 export default function ErroPage() {
   return (
     <CheckoutResult
-      icon="😕"
-      title="Pagamento não concluído"
-      message="Algo deu errado ou o pagamento foi cancelado. Seus itens continuam na sacola — você pode tentar novamente quando quiser."
+      status="recusado"
+      title="O pagamento não foi concluído."
+      message="O Mercado Pago cancelou ou recusou a cobrança. Seus itens continuam na sacola — dá para tentar de novo com outro meio de pagamento."
     />
   );
 }

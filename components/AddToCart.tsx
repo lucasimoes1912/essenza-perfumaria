@@ -18,22 +18,29 @@ export default function AddToCart({
   const [added, setAdded] = useState(false);
 
   return (
-    <div className="mt-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex items-center overflow-hidden rounded-full border border-line">
+    <div className="mt-8">
+      <div className="flex flex-wrap items-stretch gap-3">
+        <div className="flex items-center border border-rule">
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-ink"
+            disabled={qty <= 1}
+            className="flex h-[52px] w-11 items-center justify-center text-lg transition-colors hover:text-iris disabled:text-muted/40"
             aria-label="Diminuir quantidade"
           >
             −
           </button>
-          <span className="w-9 text-center font-bold">{qty}</span>
+          <span
+            className="label w-8 text-center text-[13px] text-ink"
+            aria-live="polite"
+          >
+            {qty}
+          </span>
           <button
             type="button"
             onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
-            className="flex h-10 w-10 items-center justify-center text-lg font-semibold text-ink"
+            disabled={qty >= maxQty}
+            className="flex h-[52px] w-11 items-center justify-center text-lg transition-colors hover:text-iris disabled:text-muted/40"
             aria-label="Aumentar quantidade"
           >
             +
@@ -45,9 +52,9 @@ export default function AddToCart({
           onClick={() => {
             add(product, qty);
             setAdded(true);
-            setTimeout(() => setAdded(false), 1800);
+            setTimeout(() => setAdded(false), 2400);
           }}
-          className="flex-1 rounded-full bg-ink px-8 py-4 font-serif text-[15px] font-bold text-white transition hover:bg-gold"
+          className="btn flex-1"
         >
           Adicionar à sacola
         </button>
@@ -59,16 +66,14 @@ export default function AddToCart({
           add(product, qty);
           router.push("/carrinho");
         }}
-        className="mt-3 w-full rounded-full border border-gold px-8 py-3 text-sm font-semibold text-gold transition hover:bg-gold hover:text-white"
+        className="btn-ghost mt-3 w-full"
       >
         Comprar agora
       </button>
 
-      {added && (
-        <p className="mt-3 text-sm font-semibold text-[oklch(50%_0.15_150)]">
-          ✓ Adicionado ao carrinho
-        </p>
-      )}
+      <p className="label mt-3 h-4 text-iris" role="status">
+        {added && "Adicionado à sacola"}
+      </p>
     </div>
   );
 }

@@ -1,26 +1,181 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ivory: oklch(98% 0.012 90);
-  --color-sand: oklch(96% 0.015 90);
-  --color-ink: oklch(20% 0.02 90);
-  --color-stone-warm: oklch(45% 0.02 90);
-  --color-gold: oklch(62% 0.20 350);
-  --color-gold-dark: oklch(55% 0.18 350);
-  --color-accent-blue: oklch(64% 0.17 230);
-  --color-line: oklch(90% 0.02 90);
+  /* ===== Paleta =====
+     Vidro de flacon, não papel creme: o fundo puxa para o verde-cinza pálido.
+     O acento é a raiz de íris (orris), material mais caro da perfumaria. */
+  --color-paper: #f1f3ee;
+  --color-surface: #fafbf7;
+  --color-ink: #181a14;
+  --color-muted: #656a5f;
+  --color-rule: #d7dbd1;
+  --color-iris: #4c3f72;
+  --color-iris-soft: #ebe7f2;
+  --color-rust: #9a4a31;
+  --color-moss: #3f5c43;
 
-  --font-serif: var(--font-poppins), system-ui, sans-serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  /* Aliases legados — mantêm /admin e /revendedor coerentes sem reescrevê-los. */
+  --color-ivory: #f1f3ee;
+  --color-sand: #e8ebe3;
+  --color-stone-warm: #656a5f;
+  --color-line: #d7dbd1;
+  --color-gold: #4c3f72;
+  --color-gold-dark: #382e56;
+  --color-accent-blue: #3c5a5a;
+
+  /* ===== Tipografia =====
+     Bodoni Moda: didone, a letra da publicidade de perfumaria.
+     Archivo: grotesca de texto.  DM Mono: a camada técnica (a ficha de fórmula). */
+  --font-display: var(--font-bodoni), "Bodoni Moda", Didot, Georgia, serif;
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+  --font-serif: var(--font-bodoni), Georgia, serif; /* legado (admin) */
 }
 
 body {
-  background-color: var(--color-ivory);
+  background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: oklch(68% 0.19 350 / 0.25);
+  background: #d9d0e8;
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-iris);
+  outline-offset: 3px;
+}
+
+@layer components {
+  /* Etiqueta técnica: categoria, concentração, ml, fase olfativa. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  /* Display Bodoni: em tamanho grande os fios finos aparecem. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    line-height: 0.98;
+  }
+
+  /* Campo de formulário com fio embaixo, no lugar da caixa arredondada. */
+  .field {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-rule);
+    padding: 8px 2px;
+    font-size: 15px;
+    color: var(--color-ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field:focus {
+    border-bottom-color: var(--color-iris);
+    box-shadow: 0 1px 0 0 var(--color-iris);
+  }
+  .field:focus-visible {
+    outline: none;
+  }
+  .field::placeholder {
+    color: #7f8479;
+  }
+
+  /* Ação principal: retângulo cheio, sem raio — o oposto da pílula genérica. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--color-ink);
+    color: #fafbf7;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 16px 28px;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--color-iris);
+  }
+  .btn:disabled {
+    background: #b9bdb2;
+    cursor: not-allowed;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 1px solid var(--color-ink);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 15px 28px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover {
+    background: var(--color-ink);
+    color: #fafbf7;
+  }
+
+  /* Link editorial: o fio embaixo cresce, não some. */
+  .link-rule {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--color-ink);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .link-rule:hover {
+    color: var(--color-iris);
+    border-bottom-color: var(--color-iris);
+  }
+}
+
+/* Abertura: as linhas do título sobem em sequência, como as fases de um perfume. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

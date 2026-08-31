@@ -1,55 +1,65 @@
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/config";
-import BottleArt from "./BottleArt";
+import BottleField from "./BottleField";
+import { noteSummary } from "./NoteLadder";
 
+/** Uma entrada do catálogo, montada como verbete de revista. */
 export default function ProductCard({ product }: { product: Product }) {
+  const soldOut = product.stock === 0;
+  const notes = noteSummary(product.notes);
+
+  const flag = soldOut
+    ? { text: "Esgotado", tone: "text-muted" }
+    : product.compareAt
+      ? { text: "Oferta", tone: "text-iris" }
+      : product.stock <= 3
+        ? { text: `Últimas ${product.stock}`, tone: "text-rust" }
+        : null;
+
   return (
-    <Link
-      href={`/produtos/${product.slug}`}
-      className="group overflow-hidden rounded-[18px] border border-line bg-white transition hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5"
-    >
-      <div
-        className="relative flex aspect-square items-center justify-center"
-        style={{ backgroundColor: product.art.bg }}
+    <Link href={`/produtos/${product.slug}`} className="group block">
+      <BottleField
+        art={product.art}
+        dimmed={soldOut}
+        className="aspect-[4/5]"
+        bottleClassName="h-[74%] transition-transform duration-500 ease-out group-hover:-translate-y-2"
       >
-        <BottleArt
-          art={product.art}
-          className={`h-[70%] transition duration-300 group-hover:scale-105 ${product.stock === 0 ? "opacity-40 grayscale" : ""}`}
-        />
-        {product.stock === 0 ? (
-          <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-            Esgotado
+        <span className="pointer-events-none absolute inset-0 bg-ink/0 transition-colors duration-500 group-hover:bg-ink/[0.05]" />
+        {flag && (
+          <span
+            className={`label absolute left-4 top-4 bg-surface px-2 py-1 ${flag.tone}`}
+          >
+            {flag.text}
           </span>
-        ) : product.compareAt ? (
-          <span className="absolute left-3 top-3 rounded-full bg-gold px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-            Oferta
-          </span>
-        ) : product.stock <= 3 ? (
-          <span className="absolute left-3 top-3 rounded-full bg-red-500 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-            Últimas unidades
-          </span>
-        ) : null}
-      </div>
-      <div className="p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.05em] text-gold">
-          {product.category} · {product.concentration}
+        )}
+      </BottleField>
+
+      <div className="mt-4 border-t border-rule pt-3">
+        <p className="label text-muted">
+          {product.category}
+          {product.concentration && <> · {product.concentration}</>}
+          {product.ml > 0 && <> · {product.ml} ml</>}
         </p>
-        <h3 className="mt-1 font-serif text-base font-semibold leading-snug">
+
+        <h3 className="display mt-2 text-[21px] leading-tight decoration-1 underline-offset-4 group-hover:underline">
           {product.name}
         </h3>
-        <p className="mt-1 line-clamp-2 text-sm text-stone-warm">{product.short}</p>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-[17px] font-bold">{formatPrice(product.price)}</span>
+
+        <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
+          {notes || product.short}
+        </p>
+
+        <p className="mt-3 flex items-baseline gap-2.5">
+          <span className="text-[16px] font-medium">
+            {formatPrice(product.price)}
+          </span>
           {product.compareAt && (
-            <span className="text-sm text-stone-warm line-through">
+            <span className="text-[13px] text-muted line-through">
               {formatPrice(product.compareAt)}
             </span>
           )}
-          {product.ml > 0 && (
-            <span className="ml-auto text-xs text-stone-warm">{product.ml} ml</span>
-          )}
-        </div>
+        </p>
       </div>
     </Link>
   );

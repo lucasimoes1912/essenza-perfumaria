@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getProduct, getProducts } from "@/lib/catalog";
+import { categories } from "@/lib/types";
 import { formatPrice } from "@/lib/config";
-import BottleArt from "@/components/BottleArt";
+import BottleField from "@/components/BottleField";
 import ProductCard from "@/components/ProductCard";
 import AddToCart from "@/components/AddToCart";
+import NoteLadder, { hasNotes } from "@/components/NoteLadder";
 
 export const dynamic = "force-dynamic";
 
@@ -30,43 +32,45 @@ export default async function ProdutoPage({
 
   const related = (await getProducts({ category: product.category }))
     .filter((p) => p.slug !== product.slug)
-    .slice(0, 4);
+    .slice(0, 3);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <Link
-        href="/produtos"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-stone-warm hover:text-ink"
-      >
-        ← Voltar ao catálogo
+    <div className="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 sm:py-14">
+      <Link href="/produtos" className="label text-muted hover:text-ink">
+        ← Catálogo
       </Link>
 
-      <div className="grid gap-14 md:grid-cols-2">
-        <div
-          className="flex aspect-square items-center justify-center rounded-[20px]"
-          style={{ backgroundColor: product.art.bg }}
-        >
-          <BottleArt art={product.art} className="h-[70%] max-w-full" />
-        </div>
+      <div className="mt-8 grid gap-12 lg:grid-cols-[0.9fr_1fr] lg:gap-20">
+        <BottleField
+          art={product.art}
+          dimmed={product.stock === 0}
+          className="aspect-[4/5] h-fit lg:sticky lg:top-[140px]"
+          bottleClassName="h-[78%]"
+        />
 
-        <div className="pt-2">
-          <p className="text-[13px] font-bold uppercase tracking-[0.05em] text-gold">
-            {product.category} · {product.concentration}
+        <div>
+          <p className="label text-muted">{product.brand}</p>
+          <h1 className="display mt-3 text-[clamp(2.25rem,5vw,3.5rem)]">
+            {product.name}
+          </h1>
+          <p className="label mt-4 text-muted">
+            {product.category}
+            {product.concentration && <> · {product.concentration}</>}
             {product.ml > 0 && <> · {product.ml} ml</>}
           </p>
-          <h1 className="mt-2.5 font-serif text-[32px] font-extrabold tracking-tight">{product.name}</h1>
-          <p className="mt-1 text-[15px] text-stone-warm">por {product.brand}</p>
 
-          <div className="mt-6 flex items-baseline gap-3">
-            <span className="font-serif text-[30px] font-extrabold">{formatPrice(product.price)}</span>
+          <div className="mt-8 flex items-baseline gap-4 border-t border-rule pt-6">
+            <span className="display text-[34px]">
+              {formatPrice(product.price)}
+            </span>
             {product.compareAt && (
-              <span className="text-lg text-stone-warm line-through">
+              <span className="text-[16px] text-muted line-through">
                 {formatPrice(product.compareAt)}
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-stone-warm">
-            em até 3x sem juros no cartão · Pix com aprovação imediata
+          <p className="mt-2 text-[13px] text-muted">
+            Em até 3x sem juros no cartão, ou Pix com aprovação imediata.
           </p>
 
           {product.stock > 0 ? (
@@ -83,54 +87,44 @@ export default async function ProdutoPage({
                 maxQty={product.stock}
               />
               {product.stock <= 3 && (
-                <p className="mt-3 text-sm font-semibold text-red-500">
-                  ⚡ Últimas {product.stock} unidade(s) em estoque!
+                <p className="label mt-4 text-rust">
+                  Restam {product.stock}{" "}
+                  {product.stock === 1 ? "unidade" : "unidades"}
                 </p>
               )}
             </>
           ) : (
-            <div className="mt-6 rounded-2xl bg-sand p-5">
-              <p className="font-semibold">😔 Produto esgotado</p>
-              <p className="mt-1 text-sm text-stone-warm">
-                Este perfume acabou, mas volta logo! Enquanto isso, veja as
-                sugestões abaixo.
+            <div className="mt-8 border-t border-rule pt-6">
+              <p className="display text-xl">Esgotado no momento</p>
+              <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-muted">
+                Este item voltou para a fila de reposição. Veja abaixo o que
+                há de parecido no catálogo.
               </p>
             </div>
           )}
 
-          <p className="mt-8 leading-relaxed text-stone-warm">{product.description}</p>
+          {product.description && (
+            <p className="mt-10 max-w-lg leading-relaxed text-muted">
+              {product.description}
+            </p>
+          )}
 
-          {(product.notes.topo.length > 0 ||
-            product.notes.coracao.length > 0 ||
-            product.notes.fundo.length > 0) && (
-          <div className="mt-8 grid grid-cols-3 gap-4 rounded-2xl border border-line bg-white p-5 text-sm">
-            <div>
-              <p className="font-semibold text-gold">Topo</p>
-              <ul className="mt-1 space-y-0.5 text-stone-warm">
-                {product.notes.topo.map((n) => <li key={n}>{n}</li>)}
-              </ul>
+          {hasNotes(product.notes) && (
+            <div className="mt-12 border-t border-rule pt-8">
+              <NoteLadder notes={product.notes} />
             </div>
-            <div>
-              <p className="font-semibold text-gold">Coração</p>
-              <ul className="mt-1 space-y-0.5 text-stone-warm">
-                {product.notes.coracao.map((n) => <li key={n}>{n}</li>)}
-              </ul>
-            </div>
-            <div>
-              <p className="font-semibold text-gold">Fundo</p>
-              <ul className="mt-1 space-y-0.5 text-stone-warm">
-                {product.notes.fundo.map((n) => <li key={n}>{n}</li>)}
-              </ul>
-            </div>
-          </div>
           )}
         </div>
       </div>
 
       {related.length > 0 && (
-        <section className="mt-20">
-          <h2 className="font-serif text-2xl font-semibold">Você também pode gostar</h2>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mt-28">
+          <h2 className="label border-b border-rule pb-3 text-muted">
+            Mais em{" "}
+            {categories.find((c) => c.value === product.category)?.label ??
+              product.category}
+          </h2>
+          <div className="mt-10 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((p) => (
               <ProductCard key={p.slug} product={p} />
             ))}

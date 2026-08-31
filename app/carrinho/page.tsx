@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/components/CartContext";
 import { formatPrice, store } from "@/lib/config";
-import BottleArt from "@/components/BottleArt";
+import BottleField from "@/components/BottleField";
 import type { Address, DeliveryMethod } from "@/lib/types";
 
 const EMPTY_ADDRESS: Address = {
@@ -116,17 +116,17 @@ export default function CarrinhoPage() {
 
   if (count === 0) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6">
-        <p className="text-5xl">🛍️</p>
-        <h1 className="mt-4 font-serif text-3xl font-semibold">Sua sacola está vazia</h1>
-        <p className="mt-2 text-stone-warm">
-          Explore o catálogo e encontre sua próxima fragrância favorita.
+      <div className="mx-auto max-w-[1200px] px-5 py-24 sm:px-8">
+        <p className="label text-muted">Sacola</p>
+        <h1 className="display mt-4 max-w-lg text-[clamp(2.25rem,5vw,3.5rem)]">
+          Sua sacola está vazia.
+        </h1>
+        <p className="mt-5 max-w-sm leading-relaxed text-muted">
+          Comece pelo catálogo: perfumes, corpo e maquiagem, com entrega para
+          todo o Brasil ou retirada em mãos.
         </p>
-        <Link
-          href="/produtos"
-          className="mt-8 inline-block rounded-full bg-ink px-8 py-3 text-sm font-semibold text-white transition hover:bg-gold"
-        >
-          Ver perfumes
+        <Link href="/produtos" className="btn mt-10">
+          Ver o catálogo
         </Link>
       </div>
     );
@@ -140,221 +140,266 @@ export default function CarrinhoPage() {
   const grandTotal = total + (shipping ?? 0);
   const canPay =
     addressComplete && (method === "retirada" || freeShipping || shipping !== null);
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-gold";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="font-serif text-[34px] font-extrabold tracking-tight">Carrinho</h1>
+    <div className="mx-auto max-w-[1200px] px-5 py-14 sm:px-8 sm:py-20">
+      <header className="border-b border-rule pb-8">
+        <p className="label text-muted">Sacola</p>
+        <h1 className="display mt-4 text-[clamp(2.25rem,5vw,3.5rem)]">
+          {count} {count === 1 ? "item" : "itens"}
+        </h1>
+      </header>
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-6">
-        <ul className="flex flex-col gap-4">
-          {items.map((item) => (
-            <li
-              key={item.slug}
-              className="grid grid-cols-[80px_1fr_auto] items-center gap-4 rounded-2xl border border-line bg-white p-3.5"
-            >
-              <Link
-                href={`/produtos/${item.slug}`}
-                className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[10px]"
-                style={{ backgroundColor: item.art.bg }}
+      <div className="grid gap-14 pt-10 lg:grid-cols-[1.5fr_1fr] lg:gap-20">
+        <div>
+          {/* ===== Itens ===== */}
+          <ul>
+            {items.map((item) => (
+              <li
+                key={item.slug}
+                className="grid grid-cols-[72px_1fr] items-start gap-5 border-b border-rule py-6 first:pt-0 sm:grid-cols-[88px_1fr_auto] sm:gap-6"
               >
-                <BottleArt art={item.art} className="h-14" />
-              </Link>
-              <div>
-                <Link
-                  href={`/produtos/${item.slug}`}
-                  className="font-serif text-[15px] font-semibold hover:text-gold"
-                >
-                  {item.name}
+                <Link href={`/produtos/${item.slug}`} className="block">
+                  <BottleField
+                    art={item.art}
+                    className="aspect-square"
+                    bottleClassName="h-[78%]"
+                  />
                 </Link>
-                <p className="mb-2 text-[13px] text-stone-warm">
-                  {item.concentration}
-                  {item.ml > 0 && <> · {item.ml} ml</>}
-                </p>
-                <div className="flex items-center gap-2.5">
-                  <div className="flex items-center rounded-full border border-line">
+
+                <div>
+                  <Link
+                    href={`/produtos/${item.slug}`}
+                    className="display text-[19px] decoration-1 underline-offset-4 hover:underline"
+                  >
+                    {item.name}
+                  </Link>
+                  <p className="label mt-1.5 text-muted">
+                    {item.concentration}
+                    {item.ml > 0 && <> · {item.ml} ml</>}
+                  </p>
+
+                  <div className="mt-4 flex items-center gap-5">
+                    <div className="flex items-center border border-rule">
+                      <button
+                        type="button"
+                        onClick={() => setQty(item.slug, item.qty - 1)}
+                        className="flex h-8 w-8 items-center justify-center transition-colors hover:text-iris"
+                        aria-label={`Diminuir quantidade de ${item.name}`}
+                      >
+                        −
+                      </button>
+                      <span className="label w-7 text-center text-ink">
+                        {item.qty}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(item.slug, item.qty + 1)}
+                        className="flex h-8 w-8 items-center justify-center transition-colors hover:text-iris"
+                        aria-label={`Aumentar quantidade de ${item.name}`}
+                      >
+                        +
+                      </button>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setQty(item.slug, item.qty - 1)}
-                      className="flex h-[30px] w-[30px] items-center justify-center font-semibold text-ink"
-                      aria-label="Diminuir"
+                      onClick={() => remove(item.slug)}
+                      className="label text-muted transition-colors hover:text-rust"
                     >
-                      −
-                    </button>
-                    <span className="w-[26px] text-center text-[13px] font-bold">{item.qty}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQty(item.slug, item.qty + 1)}
-                      className="flex h-[30px] w-[30px] items-center justify-center font-semibold text-ink"
-                      aria-label="Aumentar"
-                    >
-                      +
+                      Remover
                     </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => remove(item.slug)}
-                    className="text-[13px] font-semibold text-gold hover:text-gold-dark"
-                    aria-label={`Remover ${item.name}`}
-                  >
-                    Remover
-                  </button>
+
+                  <p className="mt-4 text-[15px] font-medium sm:hidden">
+                    {formatPrice(item.price * item.qty)}
+                  </p>
                 </div>
-              </div>
-              <p className="font-bold">{formatPrice(item.price * item.qty)}</p>
-            </li>
-          ))}
-        </ul>
 
-        <div className="rounded-[20px] border border-line bg-white p-6">
-          <h2 className="mb-4 font-serif text-lg font-bold">Como você quer receber?</h2>
+                <p className="hidden text-[15px] font-medium sm:block">
+                  {formatPrice(item.price * item.qty)}
+                </p>
+              </li>
+            ))}
+          </ul>
 
-          <div className="mb-5 grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setMethod("entrega")}
-              className={`rounded-2xl border p-4 text-left transition ${
-                method === "entrega"
-                  ? "border-gold bg-sand"
-                  : "border-line hover:border-gold"
-              }`}
-            >
-              <p className="font-semibold">🚚 Receber em casa</p>
-              <p className="mt-0.5 text-xs text-stone-warm">
-                Frete calculado pelo seu estado · grátis acima de{" "}
-                {formatPrice(store.freeShippingMin)}
-              </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setMethod("retirada")}
-              className={`rounded-2xl border p-4 text-left transition ${
-                method === "retirada"
-                  ? "border-gold bg-sand"
-                  : "border-line hover:border-gold"
-              }`}
-            >
-              <p className="font-semibold">🤝 Retirar em mãos</p>
-              <p className="mt-0.5 text-xs text-stone-warm">
-                Sem frete · combinamos local e horário pelo WhatsApp
-              </p>
-            </button>
-          </div>
+          {/* ===== Entrega ===== */}
+          <section className="mt-14">
+            <h2 className="label border-b border-rule pb-3 text-muted">
+              Como você quer receber
+            </h2>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm font-medium sm:col-span-2">
-              Nome completo
-              <input
-                value={address.name}
-                onChange={(e) => updateAddress("name", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Telefone / WhatsApp
-              <input
-                value={address.phone}
-                onChange={(e) => updateAddress("phone", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            {method === "entrega" && (<>
-            <label className="block text-sm font-medium">
-              CEP
-              <input
-                value={address.cep}
-                onChange={(e) => updateAddress("cep", e.target.value)}
-                onBlur={handleCepBlur}
-                placeholder="00000-000"
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium sm:col-span-2">
-              Rua
-              <input
-                value={address.street}
-                onChange={(e) => updateAddress("street", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Número
-              <input
-                value={address.number}
-                onChange={(e) => updateAddress("number", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Complemento
-              <input
-                value={address.complement}
-                onChange={(e) => updateAddress("complement", e.target.value)}
-                placeholder="opcional"
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Bairro
-              <input
-                value={address.neighborhood}
-                onChange={(e) => updateAddress("neighborhood", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              Cidade
-              <input
-                value={address.city}
-                onChange={(e) => updateAddress("city", e.target.value)}
-                className={inputClass}
-              />
-            </label>
-            <label className="block text-sm font-medium">
-              UF
-              <input
-                value={address.state}
-                onChange={(e) => updateAddress("state", e.target.value.toUpperCase())}
-                maxLength={2}
-                className={inputClass}
-              />
-            </label>
-            </>)}
-          </div>
-          {method === "entrega" && cepLoading && (
-            <p className="mt-3 text-xs text-stone-warm">Buscando endereço pelo CEP…</p>
-          )}
-          {method === "retirada" && (
-            <p className="mt-4 rounded-lg bg-sand p-3 text-xs text-stone-warm">
-              Após o pagamento, entraremos em contato pelo telefone informado
-              para combinar o local e o horário da retirada.
-            </p>
-          )}
-        </div>
-        </div>
-
-        <aside className="h-fit rounded-[20px] bg-sand p-7 lg:sticky lg:top-[100px]">
-          <h2 className="mb-5 font-serif text-lg font-bold">Resumo do pedido</h2>
-          <dl className="space-y-2.5 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-stone-warm">Subtotal ({count} itens)</dt>
-              <dd className="font-semibold">{formatPrice(total)}</dd>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  {
+                    value: "entrega" as const,
+                    title: "Receber em casa",
+                    body: `Frete calculado pelo seu estado, grátis acima de ${formatPrice(store.freeShippingMin)}.`,
+                  },
+                  {
+                    value: "retirada" as const,
+                    title: "Retirar em mãos",
+                    body: "Sem frete. Combinamos local e horário pelo WhatsApp.",
+                  },
+                ]
+              ).map((opt) => {
+                const selected = method === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setMethod(opt.value)}
+                    aria-pressed={selected}
+                    className={`border p-5 text-left transition-colors ${
+                      selected
+                        ? "border-ink bg-surface"
+                        : "border-rule hover:border-muted"
+                    }`}
+                  >
+                    <p className="text-[15px] font-medium">{opt.title}</p>
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+                      {opt.body}
+                    </p>
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex justify-between">
-              <dt className="text-stone-warm">
-                Frete{method === "entrega" && address.state.trim().length === 2 && (
-                  <> ({address.state.trim().toUpperCase()})</>
-                )}
+
+            <div className="mt-9 grid gap-x-8 gap-y-7 sm:grid-cols-2">
+              <label className="block sm:col-span-2">
+                <span className="label text-muted">Nome completo</span>
+                <input
+                  value={address.name}
+                  onChange={(e) => updateAddress("name", e.target.value)}
+                  autoComplete="name"
+                  className="field"
+                />
+              </label>
+
+              <label className="block">
+                <span className="label text-muted">Telefone / WhatsApp</span>
+                <input
+                  value={address.phone}
+                  onChange={(e) => updateAddress("phone", e.target.value)}
+                  autoComplete="tel"
+                  className="field"
+                />
+              </label>
+
+              {method === "entrega" && (
+                <>
+                  <label className="block">
+                    <span className="label text-muted">CEP</span>
+                    <input
+                      value={address.cep}
+                      onChange={(e) => updateAddress("cep", e.target.value)}
+                      onBlur={handleCepBlur}
+                      placeholder="00000-000"
+                      autoComplete="postal-code"
+                      className="field"
+                    />
+                  </label>
+                  <label className="block sm:col-span-2">
+                    <span className="label text-muted">Rua</span>
+                    <input
+                      value={address.street}
+                      onChange={(e) => updateAddress("street", e.target.value)}
+                      autoComplete="address-line1"
+                      className="field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label text-muted">Número</span>
+                    <input
+                      value={address.number}
+                      onChange={(e) => updateAddress("number", e.target.value)}
+                      className="field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label text-muted">Complemento</span>
+                    <input
+                      value={address.complement}
+                      onChange={(e) =>
+                        updateAddress("complement", e.target.value)
+                      }
+                      placeholder="opcional"
+                      className="field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label text-muted">Bairro</span>
+                    <input
+                      value={address.neighborhood}
+                      onChange={(e) =>
+                        updateAddress("neighborhood", e.target.value)
+                      }
+                      className="field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label text-muted">Cidade</span>
+                    <input
+                      value={address.city}
+                      onChange={(e) => updateAddress("city", e.target.value)}
+                      className="field"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="label text-muted">UF</span>
+                    <input
+                      value={address.state}
+                      onChange={(e) =>
+                        updateAddress("state", e.target.value.toUpperCase())
+                      }
+                      maxLength={2}
+                      className="field"
+                    />
+                  </label>
+                </>
+              )}
+            </div>
+
+            {method === "entrega" && cepLoading && (
+              <p className="label mt-5 text-muted" role="status">
+                Buscando endereço pelo CEP…
+              </p>
+            )}
+            {method === "retirada" && (
+              <p className="mt-6 border-l border-rule pl-4 text-[13px] leading-relaxed text-muted">
+                Depois do pagamento, entramos em contato pelo telefone informado
+                para combinar o local e o horário da retirada.
+              </p>
+            )}
+          </section>
+        </div>
+
+        {/* ===== Resumo ===== */}
+        <aside className="h-fit border-t border-ink pt-6 lg:sticky lg:top-[150px]">
+          <h2 className="label text-muted">Resumo do pedido</h2>
+
+          <dl className="mt-6 space-y-3 text-[14px]">
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">
+                Subtotal ({count} {count === 1 ? "item" : "itens"})
               </dt>
-              <dd className="font-semibold">
+              <dd>{formatPrice(total)}</dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt className="text-muted">
+                Frete
+                {method === "entrega" &&
+                  address.state.trim().length === 2 && (
+                    <> · {address.state.trim().toUpperCase()}</>
+                  )}
+              </dt>
+              <dd>
                 {method === "retirada" ? (
-                  <span className="text-green-600">Grátis (retirada)</span>
+                  <span className="text-moss">Retirada, sem frete</span>
                 ) : shipping === 0 ? (
-                  "Grátis"
+                  <span className="text-moss">Grátis</span>
                 ) : shipping === null ? (
-                  <span className="text-stone-warm">informe o CEP</span>
+                  <span className="text-muted">informe o CEP</span>
                 ) : (
                   formatPrice(shipping)
                 )}
@@ -363,38 +408,44 @@ export default function CarrinhoPage() {
           </dl>
 
           {method === "entrega" && missingForFreeShipping > 0 && (
-            <p className="mt-3 rounded-lg bg-white p-3 text-xs text-stone-warm">
-              Faltam <strong>{formatPrice(missingForFreeShipping)}</strong> para
-              ganhar frete grátis!
+            <p className="mt-5 border-l border-iris pl-4 text-[13px] leading-relaxed text-muted">
+              Faltam{" "}
+              <strong className="font-medium text-ink">
+                {formatPrice(missingForFreeShipping)}
+              </strong>{" "}
+              para o frete sair de graça.
             </p>
           )}
 
-          <div className="mt-4 flex justify-between border-t border-line pt-4 text-lg">
-            <span className="font-bold">Total</span>
-            <span className="font-extrabold">{formatPrice(grandTotal)}</span>
+          <div className="mt-6 flex items-baseline justify-between gap-4 border-t border-rule pt-5">
+            <span className="label text-muted">Total</span>
+            <span className="display text-[28px]">
+              {formatPrice(grandTotal)}
+            </span>
           </div>
 
           <button
             type="button"
             onClick={checkout}
             disabled={loading || !canPay}
-            className="mt-6 w-full rounded-full bg-ink py-4 font-serif text-[15px] font-bold text-white transition hover:bg-gold disabled:opacity-60"
+            className="btn mt-7 w-full"
           >
             {loading ? "Redirecionando…" : "Pagar com Mercado Pago"}
           </button>
-          {!canPay && (
-            <p className="mt-3 text-center text-xs text-stone-warm">
-              {method === "retirada"
+
+          <p className="mt-4 text-[12px] leading-relaxed text-muted">
+            {!canPay
+              ? method === "retirada"
                 ? "Informe seu nome e telefone para continuar."
-                : "Preencha o endereço de entrega para continuar."}
-            </p>
-          )}
-          <p className="mt-3 text-center text-xs text-stone-warm">
-            Pix, cartão de crédito ou boleto · ambiente seguro
+                : "Preencha o endereço de entrega para continuar."
+              : "Você será levado ao Mercado Pago para pagar com Pix, cartão ou boleto."}
           </p>
 
           {error && (
-            <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            <p
+              className="mt-4 border-l border-rust pl-4 text-[13px] leading-relaxed text-rust"
+              role="alert"
+            >
               {error}
             </p>
           )}

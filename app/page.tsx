@@ -1,141 +1,219 @@
 import Link from "next/link";
 import { store, formatPrice } from "@/lib/config";
-import { getFeatured } from "@/lib/catalog";
+import { getProducts } from "@/lib/catalog";
 import { categories } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
-import BottleArt from "@/components/BottleArt";
+import BottleField from "@/components/BottleField";
 
 export const dynamic = "force-dynamic";
 
-const categoryStyle: Record<string, { bg: string; block: string; desc: string }> = {
-  masculino: {
-    bg: "bg-[oklch(94%_0.03_230)]",
-    block: "bg-accent-blue",
-    desc: "Fragrâncias marcantes",
-  },
-  feminino: {
-    bg: "bg-[oklch(94%_0.03_350)]",
-    block: "bg-gold",
-    desc: "Notas florais e doces",
-  },
-  unissex: {
-    bg: "bg-[oklch(94%_0.025_290)]",
-    block: "bg-gradient-to-br from-accent-blue to-gold",
-    desc: "Para todos os estilos",
-  },
+const CATEGORY_GLOSS: Record<string, string> = {
+  feminino: "Perfumes, corpo e maquiagem",
+  masculino: "Perfumes e cuidados masculinos",
+  unissex: "Fragrâncias e cuidados para todos",
 };
 
+const PROMISES = [
+  {
+    title: "Produtos originais",
+    body: "Revenda autorizada, lacre de fábrica e nota em todo pedido.",
+  },
+  {
+    title: "Envio para todo o Brasil",
+    body: "Frete calculado por estado, ou retirada em mãos sem custo.",
+  },
+  {
+    title: "Pagamento pelo Mercado Pago",
+    body: "Pix com aprovação imediata, cartão em até 3x ou boleto.",
+  },
+];
+
 export default async function Home() {
-  const featured = await getFeatured();
+  const all = await getProducts();
+  const featured = all.filter((p) => p.featured);
+  const selection = (featured.length > 0 ? featured : all).slice(0, 4);
+  const hero = selection[0];
+
+  const counts = new Map(
+    categories.map((c) => [
+      c.value,
+      all.filter((p) => p.category === c.value).length,
+    ])
+  );
 
   return (
     <>
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
-        <div className="grid min-h-[420px] items-center overflow-hidden rounded-[28px] bg-gradient-to-br from-gold to-accent-blue md:grid-cols-[1.1fr_1fr]">
-          <div className="px-8 py-12 text-white sm:px-14 sm:py-14">
-            <span className="inline-block rounded-full bg-white/20 px-3.5 py-1.5 text-[13px] font-semibold">
-              Frete grátis acima de {formatPrice(store.freeShippingMin)}
-            </span>
-            <h1 className="mt-5 font-serif text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+      {/* ===== Capa ===== */}
+      <section className="mx-auto max-w-[1200px] px-5 pb-20 pt-14 sm:px-8 sm:pt-20">
+        <div className="grid items-center gap-14 lg:grid-cols-[1fr_0.85fr] lg:gap-20">
+          <div>
+            <p className="rise label text-muted" style={{ animationDelay: "0ms" }}>
+              {store.resellerNotice}
+            </p>
+
+            <h1
+              className="rise display mt-6 text-[clamp(2.75rem,7vw,5.25rem)]"
+              style={{ animationDelay: "90ms" }}
+            >
               {store.slogan}
             </h1>
-            <p className="mt-4 max-w-md text-[17px] leading-relaxed opacity-95">
-              {store.resellerNotice}. Os clássicos que você ama, com produtos
-              originais, envio rápido e pagamento seguro via Pix ou cartão.
-            </p>
-            <Link
-              href="/produtos"
-              className="mt-7 inline-block rounded-full bg-white px-8 py-4 font-serif text-[16px] font-bold text-gold-dark transition hover:scale-105"
+
+            <p
+              className="rise mt-7 max-w-md text-[17px] leading-relaxed text-muted"
+              style={{ animationDelay: "180ms" }}
             >
-              Ver catálogo
-            </Link>
+              Perfume não é uma nota só: ele abre, se transforma e deixa rastro.
+              Nas fichas de perfume daqui você vê as três fases, para comprar
+              sabendo o que vai sentir três horas depois.
+            </p>
+
+            <div
+              className="rise mt-10 flex flex-wrap items-center gap-x-8 gap-y-4"
+              style={{ animationDelay: "270ms" }}
+            >
+              <Link href="/produtos" className="btn">
+                Ver o catálogo
+              </Link>
+              <span className="label text-muted">
+                {all.length} {all.length === 1 ? "produto" : "produtos"} no
+                catálogo
+              </span>
+            </div>
           </div>
 
-          <div className="hidden h-full items-center justify-center gap-4 p-6 md:flex">
-            {featured.slice(0, 4).map((p, i) => (
-              <Link
-                key={p.slug}
-                href={`/produtos/${p.slug}`}
-                className={`flex h-32 w-28 items-center justify-center rounded-2xl bg-white/15 backdrop-blur transition hover:scale-105 ${i % 2 ? "translate-y-6" : ""}`}
-                aria-label={p.name}
-              >
-                <BottleArt art={p.art} className="h-24" />
+          {/* O herói é um perfume de verdade, apresentado com a sua ficha. */}
+          {hero ? (
+            <figure
+              className="rise lg:justify-self-end"
+              style={{ animationDelay: "360ms" }}
+            >
+              <Link href={`/produtos/${hero.slug}`} className="group block">
+                <BottleField
+                  art={hero.art}
+                  className="aspect-[4/5] w-full lg:w-[420px]"
+                  bottleClassName="h-[76%] transition-transform duration-700 ease-out group-hover:-translate-y-2"
+                />
+                <figcaption className="mt-4 border-t border-rule pt-3">
+                  <p className="label text-muted">
+                    Em destaque
+                    {hero.concentration && <> · {hero.concentration}</>}
+                    {hero.ml > 0 && <> · {hero.ml} ml</>}
+                  </p>
+                  <div className="mt-2 flex items-baseline justify-between gap-4">
+                    <h2 className="display text-2xl decoration-1 underline-offset-4 group-hover:underline">
+                      {hero.name}
+                    </h2>
+                    <span className="text-[16px] font-medium">
+                      {formatPrice(hero.price)}
+                    </span>
+                  </div>
+
+                  <dl className="mt-4 space-y-1.5">
+                    {(
+                      [
+                        ["Topo", hero.notes.topo],
+                        ["Coração", hero.notes.coracao],
+                        ["Fundo", hero.notes.fundo],
+                      ] as const
+                    ).map(([phase, list]) => (
+                      <div key={phase} className="flex gap-4 text-[13px]">
+                        <dt className="label w-20 shrink-0 pt-[3px] text-muted">
+                          {phase}
+                        </dt>
+                        <dd className="text-muted">
+                          {list.length > 0 ? list.join(", ") : "—"}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </figcaption>
               </Link>
+            </figure>
+          ) : (
+            <p className="border border-rule p-8 text-[15px] leading-relaxed text-muted">
+              O catálogo ainda está vazio. Cadastre o primeiro perfume pela área
+              do lojista para ele aparecer aqui.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ===== Índice por categoria ===== */}
+      <section className="mx-auto max-w-[1200px] px-5 sm:px-8">
+        <h2 className="label border-b border-rule pb-3 text-muted">Índice</h2>
+        <ul>
+          {categories.map((c) => (
+            <li key={c.value}>
+              <Link
+                href={`/produtos?categoria=${c.value}`}
+                className="group flex items-baseline gap-4 border-b border-rule py-6 transition-colors hover:text-iris sm:gap-8"
+              >
+                <h3 className="display text-[clamp(1.5rem,3.5vw,2.25rem)]">
+                  {c.label}
+                </h3>
+                <span className="hidden flex-1 text-[14px] text-muted sm:block">
+                  {CATEGORY_GLOSS[c.value]}
+                </span>
+                <span className="label ml-auto text-muted sm:ml-0">
+                  {counts.get(c.value) ?? 0}
+                </span>
+                <span
+                  className="label transition-transform group-hover:translate-x-1"
+                  aria-hidden="true"
+                >
+                  →
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ===== Seleção ===== */}
+      {selection.length > 0 && (
+        <section className="mx-auto max-w-[1200px] px-5 pt-20 sm:px-8">
+          <div className="flex items-baseline justify-between gap-6 border-b border-rule pb-3">
+            <h2 className="label text-muted">Seleção da casa</h2>
+            <Link href="/produtos" className="label text-muted hover:text-iris">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="mt-10 grid gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-4">
+            {selection.map((p) => (
+              <ProductCard key={p.slug} product={p} />
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Categorias */}
-      <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6">
-        <h2 className="mb-7 font-serif text-2xl font-bold tracking-tight sm:text-3xl">
-          Compre por categoria
+      {/* ===== Sobre ===== */}
+      <section id="sobre" className="mx-auto max-w-[1200px] px-5 pt-28 sm:px-8">
+        <h2 className="label border-b border-rule pb-3 text-muted">
+          Sobre a {store.name}
         </h2>
-        <div className="grid gap-6 sm:grid-cols-3">
-          {categories.map((c) => (
-            <Link
-              key={c.value}
-              href={`/produtos?categoria=${c.value}`}
-              className={`flex min-h-[140px] flex-col justify-end gap-2 rounded-[20px] p-8 transition hover:-translate-y-1 ${categoryStyle[c.value].bg}`}
-            >
-              <span className={`mb-2 block h-11 w-11 rounded-xl ${categoryStyle[c.value].block}`} />
-              <p className="font-serif text-xl font-bold">{c.label}</p>
-              <p className="text-sm text-stone-warm">{categoryStyle[c.value].desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Destaques */}
-      <section className="mx-auto max-w-6xl px-4 pt-16 sm:px-6">
-        <div className="mb-7 flex items-baseline justify-between">
-          <h2 className="font-serif text-2xl font-bold tracking-tight sm:text-3xl">
-            Mais vendidos
-          </h2>
-          <Link href="/produtos" className="text-sm font-semibold text-gold hover:underline">
-            Ver todos →
-          </Link>
-        </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.slice(0, 4).map((p) => (
-            <ProductCard key={p.slug} product={p} />
-          ))}
-        </div>
-      </section>
-
-      {/* Sobre */}
-      <section id="sobre-section" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-        <div className="grid items-center gap-10 rounded-[28px] bg-sand p-8 sm:gap-14 sm:p-14 md:grid-cols-2">
+        <div className="grid gap-14 pt-10 md:grid-cols-[1.1fr_1fr] md:gap-20">
           <div>
-            <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.08em] text-gold">
-              Sobre a {store.name}
+            <p className="display text-[clamp(1.75rem,3.5vw,2.5rem)]">
+              Perfume é identidade. A sua merece atenção.
             </p>
-            <h2 className="font-serif text-2xl font-extrabold tracking-tight sm:text-[32px]">
-              Revenda autorizada, paixão por perfumaria
-            </h2>
-            <p className="mt-4 leading-relaxed text-stone-warm">
-              {store.description}
-            </p>
-            <p className="mt-4 leading-relaxed text-stone-warm">
-              Entrega rápida, embalagem cuidadosa e atendimento próximo —
-              porque perfume é sobre identidade, e a sua merece atenção.
+            <p className="mt-6 max-w-lg leading-relaxed text-muted">
+              {store.description} Trabalhamos com um catálogo curto e escolhido
+              a dedo, embalagem cuidadosa e atendimento direto — dá para
+              perguntar sobre uma fragrância antes de comprar, e a resposta vem
+              de quem já usou.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-2xl">🔒</p>
-              <p className="mt-2 text-sm font-semibold">Pagamento seguro</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl">✈️</p>
-              <p className="mt-2 text-sm font-semibold">Envio nacional</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl">💎</p>
-              <p className="mt-2 text-sm font-semibold">100% originais</p>
-            </div>
-          </div>
+
+          <dl>
+            {PROMISES.map((p) => (
+              <div key={p.title} className="border-t border-rule py-5">
+                <dt className="text-[15px] font-medium">{p.title}</dt>
+                <dd className="mt-1 text-[14px] leading-relaxed text-muted">
+                  {p.body}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
     </>

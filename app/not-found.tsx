@@ -2,18 +2,25 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6">
-      <p className="font-serif text-7xl font-semibold text-gold">404</p>
-      <h1 className="mt-4 font-serif text-2xl font-semibold">Página não encontrada</h1>
-      <p className="mt-2 text-stone-warm">
-        O que você procura evaporou como a nota de topo de um perfume.
-      </p>
-      <Link
-        href="/"
-        className="mt-8 inline-block rounded-full bg-ink px-8 py-3 text-sm font-semibold text-white transition hover:bg-gold"
-      >
-        Voltar ao início
-      </Link>
+    <div className="mx-auto max-w-[1200px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="max-w-xl">
+        <p className="label border-b border-rule pb-3 text-muted">Erro 404</p>
+        <h1 className="display mt-8 text-[clamp(2.25rem,5vw,3.5rem)]">
+          Esta página evaporou.
+        </h1>
+        <p className="mt-6 leading-relaxed text-muted">
+          O endereço não existe mais, ou o produto saiu do catálogo. O caminho
+          mais curto de volta é pelo catálogo.
+        </p>
+        <div className="mt-12 flex flex-wrap gap-3">
+          <Link href="/produtos" className="btn">
+            Ver o catálogo
+          </Link>
+          <Link href="/" className="btn-ghost">
+            Início
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

@@ -4,13 +4,21 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
 
+type Status = "aprovado" | "pendente" | "recusado";
+
+const TONE: Record<Status, string> = {
+  aprovado: "text-moss",
+  pendente: "text-muted",
+  recusado: "text-rust",
+};
+
 export default function CheckoutResult({
-  icon,
+  status,
   title,
   message,
   clearCart = false,
 }: {
-  icon: string;
+  status: Status;
   title: string;
   message: string;
   clearCart?: boolean;
@@ -23,23 +31,24 @@ export default function CheckoutResult({
   }, [clearCart]);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-24 text-center sm:px-6">
-      <p className="text-6xl">{icon}</p>
-      <h1 className="mt-6 font-serif text-3xl font-semibold sm:text-4xl">{title}</h1>
-      <p className="mt-3 text-stone-warm">{message}</p>
-      <div className="mt-10 flex justify-center gap-3">
-        <Link
-          href="/produtos"
-          className="rounded-full bg-ink px-8 py-3 text-sm font-semibold text-white transition hover:bg-gold"
-        >
-          Continuar comprando
-        </Link>
-        <Link
-          href="/"
-          className="rounded-full border border-line px-8 py-3 text-sm font-semibold transition hover:border-gold hover:text-gold"
-        >
-          Início
-        </Link>
+    <div className="mx-auto max-w-[1200px] px-5 py-24 sm:px-8 sm:py-32">
+      <div className="max-w-xl">
+        <p className={`label border-b border-rule pb-3 ${TONE[status]}`}>
+          Pagamento {status}
+        </p>
+        <h1 className="display mt-8 text-[clamp(2.25rem,5vw,3.5rem)]">
+          {title}
+        </h1>
+        <p className="mt-6 leading-relaxed text-muted">{message}</p>
+
+        <div className="mt-12 flex flex-wrap gap-3">
+          <Link href="/produtos" className="btn">
+            Continuar comprando
+          </Link>
+          <Link href="/" className="btn-ghost">
+            Início
+          </Link>
+        </div>
       </div>
     </div>
   );

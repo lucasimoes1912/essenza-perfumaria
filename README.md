@@ -11,17 +11,28 @@ E-commerce para **revenda de produtos O Boticário** (nome "Essenza" é provisó
 - **Mercado Pago** Checkout Pro (SDK oficial v2)
 - Build por **Dockerfile** (Node 24, output standalone do Next)
 
+## Design
+
+Direção editorial, definida em [app/globals.css](app/globals.css) — todos os tokens ficam no bloco `@theme`.
+
+- **Paleta**: fundo `#F1F3EE` (verde-cinza pálido, referência ao vidro do flacon), tinta `#181A14`, e o acento é **íris** `#4C3F72` — a raiz de íris (orris) é o material mais caro da perfumaria. Auxiliares: `rust` para alerta de estoque, `moss` para confirmação.
+- **Tipografia**: **Bodoni Moda** para display (a didone é a letra da publicidade de perfumaria desde os anos 20), **Archivo** para texto e **DM Mono** para a camada técnica — categoria, concentração, ml, fases olfativas. As classes utilitárias `.display` e `.label` cobrem os dois extremos.
+- **Assinatura**: a **escada olfativa** ([components/NoteLadder.tsx](components/NoteLadder.tsx)) — topo, coração e fundo com o tempo real de cada fase na pele. Aparece só quando o produto tem notas cadastradas; batom e combo capilar simplesmente não a exibem.
+- **Componentes de casca**: `.btn`, `.btn-ghost`, `.field` (campo com fio embaixo, sem caixa) e `.link-rule`. Sem cantos arredondados e sem sombras — a hierarquia vem de fios de 1px e espaço.
+- Os nomes de token antigos (`gold`, `sand`, `ivory`, `line`, `stone-warm`) continuam definidos como aliases da nova paleta, então `/admin` e `/revendedor` seguem coerentes sem terem sido reescritos.
+- A animação de abertura da home respeita `prefers-reduced-motion`.
+
 ## Funcionalidades
 
 ### Loja (pública)
-- Home com destaques, catálogo com filtro por categoria (feminino/masculino/unissex) e página de produto com pirâmide olfativa (quando aplicável)
+- Home com capa editorial (o produto em destaque aparece com a ficha completa), índice por categoria, catálogo com filtro (feminino/masculino/unissex) e página de produto com a escada olfativa (quando o produto tem notas)
 - Produtos sem "ml" (batom, sabonete, combo) não exibem tamanho nem notas — o marcador é `ml = 0`
-- Carrinho persistido no navegador (localStorage), com barra de progresso para frete grátis
+- Carrinho persistido no navegador (localStorage), com aviso de quanto falta para o frete grátis
 - **Estoque por quantidade**: badge "Últimas unidades" (≤3), "Esgotado" (0) com compra bloqueada, e seletor de quantidade limitado ao disponível
 - Frascos ilustrados em SVG ([components/BottleArt.tsx](components/BottleArt.tsx)) — cores/formato configuráveis por produto, até haver fotos reais
 
 ### Entrega e frete
-- No carrinho, o cliente escolhe o método: **🚚 receber em casa** ou **🤝 retirar em mãos**
+- No carrinho, o cliente escolhe o método: **receber em casa** ou **retirar em mãos**
 - **Receber em casa**: endereço completo com preenchimento automático pelo CEP (ViaCEP) e **frete por estado** — tabela com as 27 UFs ([lib/shipping-regions.ts](lib/shipping-regions.ts) semeia por região: Sudeste R$ 15,90 → Norte R$ 28,90), cotada em tempo real via `/api/frete?uf=XX` e **editável em `/admin/frete`**
 - **Retirar em mãos**: sem frete; o formulário pede só nome e telefone, e o local/horário é combinado por WhatsApp após o pagamento
 - Frete **grátis** acima de `freeShippingMin` (hoje R$ 299, em [lib/config.ts](lib/config.ts)); `flatShippingFee` é apenas fallback para UF ausente da tabela

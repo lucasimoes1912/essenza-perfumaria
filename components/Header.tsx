@@ -1,47 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { store } from "@/lib/config";
+import { usePathname } from "next/navigation";
+import { store, formatPrice } from "@/lib/config";
 import { useCart } from "./CartContext";
+
+const NAV = [
+  { href: "/produtos", label: "Catálogo" },
+  { href: "/produtos?categoria=feminino", label: "Feminino" },
+  { href: "/produtos?categoria=masculino", label: "Masculino" },
+  { href: "/#sobre", label: "Sobre" },
+];
 
 export default function Header() {
   const { count } = useCart();
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-ivory/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link
-          href="/"
-          className="bg-gradient-to-r from-gold to-accent-blue bg-clip-text font-serif text-2xl font-extrabold tracking-tight text-transparent"
-        >
-          {store.name}
+    <header className="sticky top-0 z-40 bg-paper/95 backdrop-blur">
+      {/* Tarja de cabeçalho: a única promessa que vale ficar sempre à vista. */}
+      <p className="label bg-ink py-2 text-center text-[#fafbf7]">
+        Frete grátis acima de {formatPrice(store.freeShippingMin)} · Pix, cartão
+        ou retirada em mãos
+      </p>
+
+      <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-6 border-b border-rule px-5 py-5 sm:px-8">
+        <Link href="/" className="flex items-baseline gap-3">
+          <span className="display text-[26px] uppercase tracking-[0.18em] sm:text-[30px]">
+            {store.name}
+          </span>
+          <span className="label hidden text-muted sm:inline">
+            {store.tagline}
+          </span>
         </Link>
 
-        <nav className="flex items-center gap-5 text-sm sm:gap-8">
-          <Link href="/" className="hidden font-semibold text-ink transition hover:text-gold sm:block">
-            Home
-          </Link>
-          <Link href="/produtos" className="hidden font-semibold text-ink transition hover:text-gold sm:block">
-            Catálogo
-          </Link>
-          <Link href="/#sobre-section" className="hidden font-semibold text-ink transition hover:text-gold sm:block">
-            Sobre
-          </Link>
+        <nav className="flex items-center gap-6 lg:gap-9">
+          {NAV.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`label hidden pb-1 transition-colors md:block ${
+                  active
+                    ? "border-b border-ink text-ink"
+                    : "border-b border-transparent text-muted hover:text-ink"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+
           <Link
             href="/carrinho"
-            className="relative flex h-[42px] w-[42px] items-center justify-center rounded-full border border-line bg-sand transition hover:border-gold"
-            aria-label={`Carrinho com ${count} itens`}
+            className="label border-b border-ink pb-1 transition-colors hover:text-iris hover:border-iris"
+            aria-label={
+              count > 0
+                ? `Sacola com ${count} ${count === 1 ? "item" : "itens"}`
+                : "Sacola vazia"
+            }
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 3h2l2.6 13.4a2 2 0 0 0 2 1.6h9a2 2 0 0 0 2-1.6L22 8H6" />
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="18" cy="21" r="1" />
-            </svg>
-            {count > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[11px] font-bold text-white">
-                {count}
-              </span>
-            )}
+            Sacola{count > 0 && <span className="text-iris"> ({count})</span>}
           </Link>
         </nav>
       </div>
